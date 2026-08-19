@@ -7,8 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "json-server --watch db.json --port 3001",
+    "dev:all": "concurrently -n web,api -c blue,green \"npm:dev\" \"npm:server\""
   },
+  
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",
     "json-server": "^1.0.0-beta.15",
