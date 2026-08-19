@@ -16,7 +16,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
             ...init,
             headers: {
                 'Content-Type': 'application/json',
-                ...init?.headers, // Safely merges custom headers (like Auth tokens)
+                ...init?.headers,
             },
         });
     } catch {
