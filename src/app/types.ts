@@ -3,7 +3,7 @@ export interface User{
     email: string;
     name: string;
     surname: string;
-    cellnumber: string;
+    cellNumber: string;
 }
 
 export interface KeptUser extends User{
@@ -13,7 +13,7 @@ export interface KeptUser extends User{
 export type SortKey = 'name' | 'category' | 'dataAdded'
 
 export interface ShoppingItem{
-    id: number;
+    id: string;
     listId: string;
     name: string;
     quantity: number;
@@ -25,7 +25,7 @@ export interface ShoppingItem{
 }
 
 export interface ShoppingList{
-    id: number;
+    id: string;
     userId: string;
     name: string;
     category: string;
