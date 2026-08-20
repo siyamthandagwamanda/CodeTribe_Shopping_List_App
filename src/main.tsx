@@ -1,10 +1,17 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App'
+import { Provider } from 'react-redux'
+import { RouterProvider } from 'react-router-dom'
+import '@/index.css'
+import { store } from '@/app/store'
+import { router } from '@/router'
+import ToastContainer from '@/components/Container'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Provider store={store}>
+      <RouterProvider router={router} />
+      <ToastContainer />
+    </Provider>
   </StrictMode>,
 )
