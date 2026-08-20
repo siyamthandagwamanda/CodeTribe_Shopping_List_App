@@ -16,7 +16,7 @@ export interface ShoppingItem{
     id: string;
     listId: string;
     name: string;
-    quantity: number;
+    quantity: string;
     notes: string;
     category: string;
     image: string;
