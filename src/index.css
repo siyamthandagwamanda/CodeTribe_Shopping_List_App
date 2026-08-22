@@ -122,3 +122,8 @@ a:hover, a:focus {
   opacity: 0.6;
   cursor: default;
 }
+
+.btn-primary {
+  background-color: var(--color-forest);
+  color: var(--color-cream-soft);
+}
