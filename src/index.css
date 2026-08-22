@@ -196,3 +196,8 @@ a:hover, a:focus {
   color: var(--color-ink);
   outline: none;
 }
+
+.input:focus {
+  border-color: var(--color-forest);
+}
+
