@@ -166,3 +166,10 @@ a:hover, a:focus {
   background-color: var(--color-sage);
   color: var(--color-ink);
 }
+
+.icon-btn--square {
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-sage-line);
+  width: 2rem;
+  height: 2rem;
+}
