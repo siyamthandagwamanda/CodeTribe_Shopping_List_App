@@ -117,3 +117,8 @@ a:hover, a:focus {
   transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
   border: 1px solid transparent;
 }
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
