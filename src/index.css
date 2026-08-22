@@ -161,3 +161,8 @@ a:hover, a:focus {
   color: var(--color-ink-soft);
   transition: background-color 0.15s ease, color 0.15s ease;
 }
+
+.icon-btn:hover {
+  background-color: var(--color-sage);
+  color: var(--color-ink);
+}
