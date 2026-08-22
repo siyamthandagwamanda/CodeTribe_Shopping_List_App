@@ -67,3 +67,8 @@ a:hover, a:focus {
   text-decoration: underline; 
   outline: 1px solid #5B6B54;     
 }
+
+::selection {
+  background-color: var(--color-forest);
+  color: var(--color-cream-soft);
+}
