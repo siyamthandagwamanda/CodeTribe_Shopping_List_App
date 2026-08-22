@@ -87,3 +87,9 @@ a:hover, a:focus {
     scroll-behavior: auto !important;
   }
 }
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
