@@ -19,3 +19,8 @@
 --color-coral-ink: #A2483A;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
