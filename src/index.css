@@ -150,3 +150,14 @@ a:hover, a:focus {
   padding: 0.65rem 1rem;
   border-radius: 0.5rem;
 }
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  color: var(--color-ink-soft);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
