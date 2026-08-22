@@ -12,7 +12,7 @@
 --color-ink: #22301F;
 --color-ink-soft: #5B6B54;
 --color-forest: #2C4A3B;
---color-sage: #DCE3D2;
+--color-sage: #c4cfb4;
 --color-sage-line: #D9D2C1;
 --color-clay: #E4C3AE;
 --color-clay-ink: #8B4B33;
@@ -128,7 +128,7 @@ a:hover, a:focus {
   color: var(--color-cream-soft);
 }
 
-.btn-primary:hover:not(:disabled){
+.btn-primary:hover{
   background-color: var(--color-forest-dark);
 }
 
@@ -178,4 +178,21 @@ a:hover, a:focus {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
+}
+
+.field__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-ink-soft);
+}
+
+.input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-sage-line);
+  background-color: var(--color-cream-soft);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-ink);
+  outline: none;
 }
