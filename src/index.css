@@ -173,3 +173,9 @@ a:hover, a:focus {
   width: 2rem;
   height: 2rem;
 }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
