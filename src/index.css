@@ -127,3 +127,7 @@ a:hover, a:focus {
   background-color: var(--color-forest);
   color: var(--color-cream-soft);
 }
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-forest-dark);
+}
