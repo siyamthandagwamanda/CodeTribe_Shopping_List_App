@@ -201,3 +201,22 @@ a:hover, a:focus {
   border-color: var(--color-forest);
 }
 
+.error-banner {
+  border-radius: 0.5rem;
+  background-color: var(--color-coral-soft);
+  color: var(--color-coral-ink);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.eyebrow {
+  display: inline-block;
+  border-radius: 999px;
+  background-color: var(--color-coral-soft);
+  color: var(--color-coral-ink);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.75rem;
+}
