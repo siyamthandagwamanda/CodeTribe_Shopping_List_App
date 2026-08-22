@@ -128,6 +128,25 @@ a:hover, a:focus {
   color: var(--color-cream-soft);
 }
 
-.btn-primary:hover:not(:disabled) {
+.btn-primary:hover:not(:disabled){
   background-color: var(--color-forest-dark);
+}
+
+.btn-outline:hover {
+  background-color: var(--color-sage);
+}
+
+.btn-quiet {
+  color: var(--color-ink-soft);
+  padding: 0.4rem 0.6rem;
+}
+
+.btn-quiet:hover {
+  color: var(--color-ink);
+}
+
+.btn-block {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
 }
