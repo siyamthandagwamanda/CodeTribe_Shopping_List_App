@@ -1,4 +1,4 @@
-/*Ai assistence*/
+/*Ai Mode assistence*/
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -71,4 +71,10 @@ a:hover, a:focus {
 ::selection {
   background-color: var(--color-forest);
   color: var(--color-cream-soft);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-forest);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
