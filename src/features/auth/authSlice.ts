@@ -33,7 +33,6 @@ export const registerUser = createAsyncThunk<
   try {
     const targetEmail = form.email.toLowerCase()
     
-    // FIX: json-server filters via substring. We must manually find an exact match.
     const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
     const exactMatch = matches.find(u => u.email.toLowerCase() === targetEmail)
     
@@ -42,13 +41,9 @@ export const registerUser = createAsyncThunk<
     }
    
     const passwordHash = await bcrypt.hash(form.password, SALT_ROUNDS)
-    
-    // FIX: Cryptographic fallback fallback for environments without HTTPS localhost context
-    const fallbackId = Math.random().toString(36).substring(2, 15)
-    const userId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : fallbackId
 
+    
     const created = await api.post<KeptUser>('/users', {
-      id: userId,
       name: form.name,
       surname: form.surname,
       cellNumber: form.cellNumber,
@@ -75,7 +70,6 @@ export const loginUser = createAsyncThunk<
     const targetEmail = email.toLowerCase()
     const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
 
-    // FIX: Must manually match exact string to prevent loose substring bypasses
     const account = matches.find(u => u.email.toLowerCase() === targetEmail)
     if (!account) {
       return rejectWithValue('Email or password is incorrect.')
@@ -103,7 +97,6 @@ export const updateProfile = createAsyncThunk<
   try {
     const targetEmail = form.email.toLowerCase()
 
-    // FIX: Ensure they don't change their email to someone else's existing email
     const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
     const duplicate = matches.find(u => u.email.toLowerCase() === targetEmail && u.id !== form.id)
     if (duplicate) {
@@ -142,7 +135,8 @@ const authSlice = createSlice({
       state.user = null
       state.status = 'idle'
       state.error = null
-      window.localStorage.removeItem(SESSION_KEY)
+      
+      writeStorage(SESSION_KEY, null)
     },
     clearAuthError(state) {
       state.error = null

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ShoppingBag } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
@@ -13,28 +13,40 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
+  const isLoading = status === 'loading'
+
+  
+  useEffect(() => {
+    return () => {
+      dispatch(clearAuthError())
+    }
+  }, [dispatch])
+
   if (user) return <Navigate to="/dashboard" replace />
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    if (isLoading) return 
+
     dispatch(clearAuthError())
 
-    const result = await dispatch(loginUser({ email, password }))
+    const result = await dispatch(loginUser({ email: email.trim(), password }))
 
     if (loginUser.fulfilled.match(result)) {
       dispatch(notify(`Welcome back, ${result.payload.name}!`, 'success'))
+      
       const from =
         (location.state as { from?: { pathname: string } } | null)?.from
           ?.pathname ?? '/dashboard'
+      
+      
       navigate(from, { replace: true })
     }
   }
 
   return (
     <div className="auth-page">
-
       <div className="auth-page__inner">
-
         <Link to="/" className="auth-page__brand brand">
           <span className="brand__icon">
             <ShoppingBag size={16} strokeWidth={2.25} />
@@ -43,9 +55,7 @@ export default function LoginPage() {
         </Link>
 
         <div className="auth-card">
-
           <h1 className="auth-card__title">Welcome back</h1>
-
           <p className="auth-card__subtitle">
             Log in to pick up where you left off.
           </p>
@@ -55,6 +65,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
+                disabled={isLoading} 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="alex@example.com"
@@ -63,10 +74,10 @@ export default function LoginPage() {
             </Field>
 
             <Field label="Password">
-
               <input
                 type="password"
                 required
+                disabled={isLoading} 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -78,17 +89,16 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={status === 'loading'}
+              disabled={isLoading}
               className="btn btn-primary btn-block"
             >
-              {status === 'loading' ? 'Logging in…' : 'Log In'}
+              {isLoading ? 'Logging in…' : 'Log In'}
             </button>
           </form>
 
           <p className="auth-card__footer">
             New here? <Link to="/register">Create an account</Link>
           </p>
-          
         </div>
       </div>
     </div>
@@ -96,7 +106,6 @@ export default function LoginPage() {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-    
   return (
     <label className="field">
       <span className="field__label">{label}</span>

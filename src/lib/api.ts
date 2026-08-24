@@ -6,7 +6,7 @@ export class ApiError extends Error {
   constructor(message: string, status: number) {
     super(message);
     this.status = status;
-    this.name = 'Error';
+    this.name = 'ApiError'; 
   }
 }
 
@@ -37,11 +37,19 @@ async function request<T>(
     );
   }
 
+  
   if (res.status === 204) {
     return undefined as T;
   }
 
-  return (await res.json()) as T;
+  
+  const text = await res.text();
+  if (!text || text.trim() === '') {
+    return undefined as T;
+  }
+
+
+  return JSON.parse(text) as T;
 }
 
 export const api = {

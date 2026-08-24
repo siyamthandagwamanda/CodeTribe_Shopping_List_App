@@ -15,7 +15,6 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 ]
 
 export default function ListDetailPage() {
-
   const { id } = useParams<{ id: string }>()
   const list = useAppSelector((s) => s.shopping.lists.find((l) => l.id === id))
   const items = useAppSelector((s) => (id ? s.shopping.itemsByList[id] ?? [] : []))
@@ -26,18 +25,19 @@ export default function ListDetailPage() {
   const query = searchParams.get('q') ?? ''
   const sortBy = (searchParams.get('sort') as SortKey) || 'dateAdded'
 
+  
   const [name, setName] = useState('')
   const [qty, setQty] = useState('')
   const [category, setCategory] = useState(CATEGORIES[0])
   const [notes, setNotes] = useState('')
   const [image, setImage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false) 
 
   useEffect(() => {
     if (id) dispatch(fetchItems(id))
   }, [id, dispatch])
 
   const visibleItems = useMemo(() => {
-
     const filtered = query
       ? items.filter((i) => i.name.toLowerCase().includes(query.toLowerCase()))
       : items
@@ -59,18 +59,33 @@ export default function ListDetailPage() {
 
   async function submitItem() {
     const trimmed = name.trim()
-    if (!trimmed || !list) return
-    const result = await dispatch(
-      createItem({ listId: list.id, name: trimmed, quantity: qty.trim(), notes: notes.trim(), category, image: image.trim() })
-    )
-    if (createItem.fulfilled.match(result)) {
-      dispatch(notify(`Added "${trimmed}" to ${list.name}`, 'success'))
-      setName('')
-      setQty('')
-      setNotes('')
-      setImage('')
-    } else {
-      dispatch(notify('Could not add that item.', 'error'))
+    if (!trimmed || !list || isSubmitting) return
+
+    try {
+      setIsSubmitting(true) 
+      const result = await dispatch(
+        createItem({ 
+          listId: list.id, 
+          name: trimmed, 
+          quantity: qty.trim(), 
+          notes: notes.trim(), 
+          category, 
+          image: image.trim() 
+        })
+      )
+      
+      if (createItem.fulfilled.match(result)) {
+        dispatch(notify(`Added "${trimmed}" to ${list.name}`, 'success'))
+        setName('')
+        setQty('')
+        setNotes('')
+        setImage('')
+        setCategory(CATEGORIES[0]) 
+      } else {
+        dispatch(notify('Could not add that item.', 'error'))
+      }
+    } finally {
+      setIsSubmitting(false) 
     }
   }
 
@@ -125,6 +140,7 @@ export default function ListDetailPage() {
           <Search size={14} />
           <input
             value={query}
+            disabled={isSubmitting}
             onChange={(e) => updateQuery(e.target.value)}
             placeholder="Search items by name…"
             className="search-input__field"
@@ -133,36 +149,39 @@ export default function ListDetailPage() {
 
         <label className="sort-select">
           <ArrowUpDown size={13} />
-
           <select value={sortBy} onChange={(e) => updateSort(e.target.value as SortKey)}>
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>Sort: {opt.label}</option>
             ))}
           </select>
-          
         </label>
-
       </div>
 
       <div className="panel detail-panel">
-
         <div className="add-item-form">
           <input
             value={name}
+            disabled={isSubmitting}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && submitItem()}
-            placeholder="Item name, e.g. Oat milk"
+            placeholder={isSubmitting ? "Adding..." : "Item name, e.g. Oat milk"}
             className="input add-item-form__name"
           />
 
           <input
             value={qty}
+            disabled={isSubmitting}
             onChange={(e) => setQty(e.target.value)}
             placeholder="qty"
             className="input add-item-form__qty"
           />
 
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="input add-item-form__select">
+          <select 
+            value={category} 
+            disabled={isSubmitting} 
+            onChange={(e) => setCategory(e.target.value)} 
+            className="input add-item-form__select"
+          >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
@@ -170,6 +189,7 @@ export default function ListDetailPage() {
 
           <input
             value={notes}
+            disabled={isSubmitting}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="notes (optional)"
             className="input add-item-form__notes"
@@ -177,6 +197,7 @@ export default function ListDetailPage() {
 
           <input
             value={image}
+            disabled={isSubmitting}
             onChange={(e) => setImage(e.target.value)}
             placeholder="image URL (optional)"
             className="input add-item-form__image"
@@ -185,6 +206,7 @@ export default function ListDetailPage() {
           <button
             type="button"
             onClick={submitItem}
+            disabled={isSubmitting || !name.trim()}
             aria-label="Add item"
             className="add-item-form__submit"
           >
@@ -200,12 +222,10 @@ export default function ListDetailPage() {
               <ItemRow key={item.id} listId={list.id} item={item} />
             ))}
           </ul>
-
         ) : items.length > 0 ? (
           <p className="empty-state">No items match "{query}".</p>
         ) : null}
       </div>
-
     </div>
   )
 }

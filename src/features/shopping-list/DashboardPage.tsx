@@ -18,9 +18,12 @@ export default function DashboardPage() {
   const user = useAppSelector((s) => s.auth.user)
   const { lists, listsStatus } = useAppSelector((s) => s.shopping)
   const dispatch = useAppDispatch()
+  
+  
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [newCategory, setNewCategory] = useState(CATEGORIES[0])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [searchParams, setSearchParams] = useSearchParams()
   const query = searchParams.get('q') ?? ''
@@ -56,16 +59,23 @@ export default function DashboardPage() {
 
   async function submitNewList() {
     const trimmed = newName.trim()
-    if (trimmed && user) {
+    if (!trimmed || !user || isSubmitting) return
+
+    try {
+      setIsSubmitting(true)
       const result = await dispatch(createList({ userId: user.id, name: trimmed, category: newCategory }))
+      
       if (createList.fulfilled.match(result)) {
         dispatch(notify(`Created "${trimmed}"`, 'success'))
         setNewName('')
+        setNewCategory(CATEGORIES[0])
+        setAdding(false) 
       } else {
         dispatch(notify('Could not create that list.', 'error'))
       }
+    } finally {
+      setIsSubmitting(false) 
     }
-    setAdding(false)
   }
 
   return (
@@ -82,7 +92,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="filter-bar">
-
         <div className="search-input">
           <Search size={14} />
           <input
@@ -101,7 +110,6 @@ export default function DashboardPage() {
             ))}
           </select>
         </label>
-
       </div>
 
       <div className="panel">
@@ -123,23 +131,43 @@ export default function DashboardPage() {
               <input
                 autoFocus
                 value={newName}
+                disabled={isSubmitting}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && submitNewList()}
                 placeholder="List name, e.g. Groceries"
                 className="input"
               />
 
-              <select value={newCategory} onChange={(e) => setNewCategory(e.target.value)} className="input add-form__select">
+              <select 
+                value={newCategory} 
+                disabled={isSubmitting}
+                onChange={(e) => setNewCategory(e.target.value)} 
+                className="input add-form__select"
+              >
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
 
-              <button type="button" onClick={submitNewList} className="add-form__btn">
-                Add
+              <button 
+                type="button" 
+                onClick={submitNewList} 
+                disabled={isSubmitting} 
+                className="add-form__btn"
+              >
+                {isSubmitting ? 'Adding...' : 'Add'}
+              </button>
+              
+              <button 
+                type="button" 
+                onClick={() => setAdding(false)} 
+                disabled={isSubmitting}
+                className="add-form__cancel-btn"
+                style={{ marginLeft: '4px', opacity: 0.6 }}
+              >
+                Cancel
               </button>
             </div>
-
           </div>
         ) : (
           <button type="button" onClick={() => setAdding(true)} className="add-trigger">

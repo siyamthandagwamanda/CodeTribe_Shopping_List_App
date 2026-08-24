@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { User, Mail, Phone, LogOut, Pencil } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
@@ -20,18 +20,33 @@ export default function ProfilePage() {
   const [email, setEmail] = useState(user?.email ?? '')
   const [password, setPassword] = useState('')
 
+  const isLoading = status === 'loading'
+
+ 
+  useEffect(() => {
+    if (user) {
+      setName(user.name)
+      setSurname(user.surname)
+      setCellNumber(user.cellNumber)
+      setEmail(user.email)
+    }
+  }, [user, editing])
+
+  
   if (!user) return null
 
   async function handleSave(e: FormEvent) {
     e.preventDefault()
+    if (isLoading) return
+
     dispatch(clearAuthError())
     const result = await dispatch(
       updateProfile({
         id: user!.id,
-        name,
-        surname,
-        cellNumber,
-        email,
+        name: name.trim(),
+        surname: surname.trim(),
+        cellNumber: cellNumber.trim(),
+        email: email.trim(),
         password: password || undefined,
       })
     )
@@ -43,6 +58,17 @@ export default function ProfilePage() {
     }
   }
 
+  function handleCancel() {
+    setEditing(false)
+    dispatch(clearAuthError())
+  }
+
+  function handleLogout() {
+    
+    navigate('/', { replace: true })
+    dispatch(logout())
+  }
+
   return (
     <div className="profile-page">
       <p className="profile-title">Profile</p>
@@ -51,34 +77,59 @@ export default function ProfilePage() {
       <div className="profile-card">
         {editing ? (
           <form onSubmit={handleSave} className="auth-form">
-
             <div className="field-row">
-
               <label className="field">
                 <span className="field__label">First Name</span>
-                <input required value={name} onChange={(e) => setName(e.target.value)} className="input" />
+                <input 
+                  required 
+                  disabled={isLoading}
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  className="input" 
+                />
               </label>
 
               <label className="field">
                 <span className="field__label">Surname</span>
-                <input required value={surname} onChange={(e) => setSurname(e.target.value)} className="input" />
+                <input 
+                  required 
+                  disabled={isLoading}
+                  value={surname} 
+                  onChange={(e) => setSurname(e.target.value)} 
+                  className="input" 
+                />
               </label>
-
             </div>
+            
             <label className="field">
               <span className="field__label">Email Address</span>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="input" />
+              <input 
+                type="email" 
+                required 
+                disabled={isLoading}
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                className="input" 
+              />
             </label>
 
             <label className="field">
               <span className="field__label">Cell Number</span>
-              <input type="tel" required value={cellNumber} onChange={(e) => setCellNumber(e.target.value)} className="input" />
+              <input 
+                type="tel" 
+                required 
+                disabled={isLoading}
+                value={cellNumber} 
+                onChange={(e) => setCellNumber(e.target.value)} 
+                className="input" 
+              />
             </label>
             
             <label className="field">
               <span className="field__label">New Password (optional)</span>
               <input
                 type="password"
+                disabled={isLoading}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Leave blank to keep current password"
@@ -89,10 +140,19 @@ export default function ProfilePage() {
             {error && <p className="error-banner">{error}</p>}
 
             <div className="field-row">
-              <button type="submit" disabled={status === 'loading'} className="btn btn-primary btn-block">
-                {status === 'loading' ? 'Saving…' : 'Save changes'}
+              <button 
+                type="submit" 
+                disabled={isLoading} 
+                className="btn btn-primary btn-block"
+              >
+                {isLoading ? 'Saving…' : 'Save changes'}
               </button>
-              <button type="button" onClick={() => setEditing(false)} className="btn btn-outline btn-block">
+              <button 
+                type="button" 
+                onClick={handleCancel} 
+                disabled={isLoading} 
+                className="btn btn-outline btn-block"
+              >
                 Cancel
               </button>
             </div>
@@ -130,10 +190,7 @@ export default function ProfilePage() {
 
         <button
           type="button"
-          onClick={() => {
-            dispatch(logout())
-            navigate('/', { replace: true })
-          }}
+          onClick={handleLogout}
           className="profile-logout profile-logout--danger"
         >
           <LogOut size={14} />

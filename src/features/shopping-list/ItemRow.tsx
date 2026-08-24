@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Trash2, Check } from 'lucide-react'
+import { Pencil, Trash2, Check, X } from 'lucide-react'
 import type { ShoppingItem } from '@/app/types'
 import { useAppDispatch } from '@/app/hooks'
 import { updateItem, deleteItem } from '@/features/shopping-list/shoppingSlice'
@@ -14,20 +14,23 @@ export default function ItemRow({
   listId: string
   item: ShoppingItem
 }) {
-
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState(item.name)
   const [draftQty, setDraftQty] = useState(item.quantity)
   const [draftCategory, setDraftCategory] = useState(item.category)
   const [draftNotes, setDraftNotes] = useState(item.notes)
   const [draftImage, setDraftImage] = useState(item.image)
+  const [isProcessing, setIsProcessing] = useState(false) 
+  
   const dispatch = useAppDispatch()
 
-  function save() {
+  async function save() {
     const trimmed = draftName.trim()
+    if (!trimmed || isProcessing) return
 
-    if (trimmed){
-      dispatch(
+    try {
+      setIsProcessing(true)
+      const result = await dispatch(
         updateItem({
           id: item.id,
           listId,
@@ -40,27 +43,57 @@ export default function ItemRow({
           },
         })
       )
+
+      if (updateItem.fulfilled.match(result)) {
+        setEditing(false) 
+      } else {
+        dispatch(notify('Could not save item updates.', 'error'))
+      }
+    } finally {
+      setIsProcessing(false)
     }
+  }
+
+  function handleCancel() {
+    
+    setDraftName(item.name)
+    setDraftQty(item.quantity)
+    setDraftCategory(item.category)
+    setDraftNotes(item.notes)
+    setDraftImage(item.image)
     setEditing(false)
   }
 
-  function toggle() {
-    dispatch(updateItem({ id: item.id, listId, patch: { checked: !item.checked } }))
+  async function toggle() {
+    if (isProcessing) return
+    try {
+      setIsProcessing(true)
+      await dispatch(updateItem({ id: item.id, listId, patch: { checked: !item.checked } }))
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   async function remove() {
-    const result = await dispatch(deleteItem({ id: item.id, listId }))
+    if (isProcessing) return
+    try {
+      setIsProcessing(true)
+      const result = await dispatch(deleteItem({ id: item.id, listId }))
 
-    if (deleteItem.fulfilled.match(result)) {
-      dispatch(notify(`Removed "${item.name}"`, 'info'))
+      if (deleteItem.fulfilled.match(result)) {
+        dispatch(notify(`Removed "${item.name}"`, 'info'))
+      }
+    } finally {
+      setIsProcessing(false)
     }
   }
 
   return (
-    <li className="item-row">
+    <li className={`item-row ${isProcessing ? 'item-row--disabled' : ''}`} style={{ opacity: isProcessing ? 0.6 : 1 }}>
       <button
         type="button"
         onClick={toggle}
+        disabled={isProcessing}
         aria-pressed={item.checked}
         aria-label={item.checked ? 'Mark as not bought' : 'Mark as bought'}
         className={`item-checkbox${item.checked ? ' item-checkbox--checked' : ''}`}
@@ -77,6 +110,7 @@ export default function ItemRow({
           <input
             autoFocus
             value={draftName}
+            disabled={isProcessing}
             onChange={(e) => setDraftName(e.target.value)}
             placeholder="Item name"
             className="item-edit__name"
@@ -84,6 +118,7 @@ export default function ItemRow({
 
           <input
             value={draftQty}
+            disabled={isProcessing}
             placeholder="qty"
             onChange={(e) => setDraftQty(e.target.value)}
             className="item-edit__qty"
@@ -91,10 +126,10 @@ export default function ItemRow({
 
           <select
             value={draftCategory}
+            disabled={isProcessing}
             onChange={(e) => setDraftCategory(e.target.value)}
             className="item-edit__select"
           >
-
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
@@ -102,6 +137,7 @@ export default function ItemRow({
 
           <input
             value={draftNotes}
+            disabled={isProcessing}
             placeholder="notes"
             onChange={(e) => setDraftNotes(e.target.value)}
             className="item-edit__notes"
@@ -109,6 +145,7 @@ export default function ItemRow({
 
           <input
             value={draftImage}
+            disabled={isProcessing}
             placeholder="image URL"
             onChange={(e) => setDraftImage(e.target.value)}
             className="item-edit__image"
@@ -124,18 +161,43 @@ export default function ItemRow({
       )}
 
       <div className="item-actions">
-        <button
-          type="button"
-          onClick={() => (editing ? save() : setEditing(true))}
-          aria-label={editing ? 'Save item' : 'Edit item'}
-          className="icon-btn"
-        >
-          {editing ? <Check size={13} /> : <Pencil size={13} />}
-        </button>
+        {editing ? (
+          <>
+            <button
+              type="button"
+              onClick={save}
+              disabled={isProcessing || !draftName.trim()}
+              aria-label="Save item"
+              className="icon-btn"
+            >
+              <Check size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isProcessing}
+              aria-label="Cancel editing"
+              className="icon-btn"
+            >
+              <X size={13} />
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            disabled={isProcessing}
+            aria-label="Edit item"
+            className="icon-btn"
+          >
+            <Pencil size={13} />
+          </button>
+        )}
         
         <button
           type="button"
           onClick={remove}
+          disabled={isProcessing}
           aria-label="Delete item"
           className="icon-btn icon-btn--danger"
         >
