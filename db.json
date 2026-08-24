@@ -1,0 +1,31 @@
+{
+  "users": [
+    {
+      "id": "i3xBvMMtH_w",
+      "name": "hrhffhfd",
+      "surname": "ngmnt",
+      "cellNumber": "25465432131",
+      "email": "fdgdgh@gmail.com",
+      "password": "$2b$10$UtjNplns.kYrrYjTKDjacem5YcgJiMjMBjwP9Ks10lkAkqUlITT4y"
+    },
+    {
+      "id": "Ma6170ZumTE",
+      "name": "sabelo",
+      "surname": "gumede",
+      "cellNumber": "0123456789",
+      "email": "sabelo@gmail.com",
+      "password": "$2b$10$Ti5i1UDxglrGuoSMmDfQjOFJEbLwfDZzoznvzRa4e2.RE75OhXVcm"
+    },
+    {
+      "id": "QecUhye9eF4",
+      "name": "Siyamthanda",
+      "surname": "Gwamanda",
+      "cellNumber": "08745632438",
+      "email": "gwamandasiyamthanda13@gmail.com",
+      "password": "$2b$10$ffhkQmbQXmBHHWEMyxXBt.Niu0pNeUm70Wl4i4ccqOpMWewmY.WDS"
+    }
+  ],
+  "list": [],
+  "items": [],
+  "$schema": "./node_modules/json-server/schema.json"
+}
