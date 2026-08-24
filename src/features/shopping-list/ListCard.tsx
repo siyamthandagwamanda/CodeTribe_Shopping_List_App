@@ -108,7 +108,7 @@ export default function ListCard({ list }: { list: ShoppingList }) {
             autoFocus
             value={draftName}
             disabled={isProcessing}
-            onClick={(e) => e.stopPropagation()} // Stop text selection dragging from triggering navigation
+            onClick={(e) => e.stopPropagation()} 
             onChange={(e) => setDraftName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && saveRename(e)}
             className="list-card__name-input"

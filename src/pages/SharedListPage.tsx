@@ -71,7 +71,7 @@ export default function SharedListPage() {
                       {item.name}
                       {item.quantity && <span className="item-qty">{item.quantity}</span>}
                       {item.category && <span className="item-badge">{item.category}</span>}
-                      {/* Integrated missing notes layout parameter */}
+                     
                       {item.notes && <span className="item-notes">{item.notes}</span>}
                     </span>
                   </li>
