@@ -5,13 +5,11 @@ import { RouterProvider } from 'react-router-dom'
 import '@/index.css'
 import { store } from '@/app/store'
 import { router } from '@/router'
-import ToastContainer from '@/components/Container'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <RouterProvider router={router} />
-      <ToastContainer />
     </Provider>
   </StrictMode>,
 )
