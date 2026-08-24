@@ -43,7 +43,6 @@ export const createList = createAsyncThunk<
   try {
     const now = new Date().toISOString()
     return await api.post<ShoppingList>('/lists', {
-      id: crypto.randomUUID(),
       userId,
       name,
       category,
