@@ -46,7 +46,7 @@ export default function RegisterPage() {
 
     if (registerUser.fulfilled.match(result)) {
       dispatch(notify(`Welcome to ShopSort, ${name.trim()}!`, 'success'))
-      // Navigate out immediately to prevent unmounted memory state leaks
+     
       navigate('/dashboard', { replace: true })
     }
   }
