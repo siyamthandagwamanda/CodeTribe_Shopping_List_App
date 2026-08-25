@@ -28,7 +28,6 @@ export default function ListCard({ list }: { list: ShoppingList }) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
- 
   useEffect(() => {
     setDraftName(list.name)
   }, [list.name])
@@ -46,7 +45,12 @@ export default function ListCard({ list }: { list: ShoppingList }) {
 
     try {
       setIsProcessing(true)
-      const result = await dispatch(renameList({ id: list.id, name: trimmed }))
+      
+      const result = await dispatch(renameList({ 
+        id: list.id, 
+        name: trimmed, 
+        category: list.category || '' 
+      }))
       if (renameList.fulfilled.match(result)) {
         setEditing(false)
       } else {
@@ -78,8 +82,10 @@ export default function ListCard({ list }: { list: ShoppingList }) {
     }
   }
 
+ 
   function handleToggleEdit(e: React.MouseEvent) {
     e.stopPropagation() 
+    setEditing(true)
   }
 
   function handleToggleDelete(e: React.MouseEvent) {

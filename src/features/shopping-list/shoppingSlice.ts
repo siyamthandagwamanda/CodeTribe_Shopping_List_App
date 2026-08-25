@@ -27,7 +27,6 @@ export const fetchLists = createAsyncThunk<ShoppingList[], string, { rejectValue
   'shopping/fetchLists',
   async (userId, { rejectWithValue }) => {
     try {
-      
       return await api.get<ShoppingList[]>(`/list?userId=${userId}&_sort=updatedAt&_order=desc`)
     } catch (err) {
       return rejectWithValue(errMsg(err, 'Could not load your lists.'))
@@ -42,8 +41,6 @@ export const createList = createAsyncThunk<
 >('shopping/createList', async ({ userId, name, category }, { rejectWithValue }) => {
   try {
     const now = new Date().toISOString()
- 
-  
     return await api.post<ShoppingList>('/list', {
       userId,
       name,
@@ -56,14 +53,18 @@ export const createList = createAsyncThunk<
   }
 })
 
+
 export const renameList = createAsyncThunk<
   ShoppingList,
-  { id: string; name: string },
+  { id: string; name: string; category: string },
   { rejectValue: string }
->('shopping/renameList', async ({ id, name }, { rejectWithValue }) => {
+>('shopping/renameList', async ({ id, name, category }, { rejectWithValue }) => {
   try {
-    
-    return await api.patch<ShoppingList>(`/list/${id}`, { name, updatedAt: new Date().toISOString() })
+    return await api.patch<ShoppingList>(`/list/${id}`, { 
+      name, 
+      category, 
+      updatedAt: new Date().toISOString() 
+    })
   } catch (err) {
     return rejectWithValue(errMsg(err, 'Could not rename the list.'))
   }
@@ -75,7 +76,6 @@ export const deleteList = createAsyncThunk<string, string, { rejectValue: string
     try {
       const items = await api.get<ShoppingItem[]>(`/items?listId=${id}`)
       await Promise.all(items.map((item) => api.delete(`/items/${item.id}`)))
-      
       return id
     } catch (err) {
       return rejectWithValue(errMsg(err, 'Could not delete the list.'))
@@ -177,7 +177,6 @@ const shoppingSlice = createSlice({
         state.lists = state.lists.filter((l) => l.id !== action.payload)
         delete state.itemsByList[action.payload]
       })
-      
       .addCase(fetchItems.pending, (state) => {
         state.itemsStatus = 'loading'
       })
