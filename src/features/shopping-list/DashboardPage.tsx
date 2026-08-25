@@ -19,7 +19,6 @@ export default function DashboardPage() {
   const { lists, listsStatus } = useAppSelector((s) => s.shopping)
   const dispatch = useAppDispatch()
   
-  
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [newCategory, setNewCategory] = useState(CATEGORIES[0])
@@ -29,18 +28,33 @@ export default function DashboardPage() {
   const query = searchParams.get('q') ?? ''
   const sortBy = (searchParams.get('sort') as SortKey) || 'dateAdded'
 
+
   useEffect(() => {
-    if (user) dispatch(fetchLists(user.id))
+    if (user) {
+      dispatch(fetchLists(user.id))
+    }
   }, [user, dispatch])
+
 
   const visibleLists = useMemo(() => {
     const filtered = query
       ? lists.filter((l) => l.name.toLowerCase().includes(query.toLowerCase()))
       : lists
+
     return [...filtered].sort((a, b) => {
-      if (sortBy === 'name') return a.name.localeCompare(b.name)
-      if (sortBy === 'category') return a.category.localeCompare(b.category)
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      if (sortBy === 'name') {
+        return (a.name || '').localeCompare(b.name || '')
+      }
+      if (sortBy === 'category') {
+      
+        const catA = a.category || ''
+        const catB = b.category || ''
+        return catA.localeCompare(catB)
+      }
+      
+      const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0
+      const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0
+      return timeB - timeA
     })
   }, [lists, query, sortBy])
 
