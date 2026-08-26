@@ -21,6 +21,7 @@ export const router = createBrowserRouter([
       {
         element: <Layout />,
         children: [
+          
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'lists/:id', element: <ListDetailPage /> },
           { path: 'profile', element: <ProfilePage /> },

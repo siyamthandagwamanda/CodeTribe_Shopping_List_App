@@ -17,7 +17,7 @@ export default function SharedListPage() {
     async function load() {
       try {
         const [fetchedList, fetchedItems] = await Promise.all([
-          api.get<ShoppingList>(`/lists/${id}`),
+          api.get<ShoppingList>(`/list/${id}`),
           api.get<ShoppingItem[]>(`/items?listId=${id}`),
         ])
         if (!cancelled) {
@@ -40,7 +40,6 @@ export default function SharedListPage() {
   return (
     <div className="auth-page">
       <div className="auth-page__inner" style={{ maxWidth: '32rem' }}>
-
         <Link to="/" className="auth-page__brand brand">
           <span className="brand__icon">
             <ShoppingBag size={16} strokeWidth={2.25} />
@@ -54,7 +53,6 @@ export default function SharedListPage() {
             <p className="empty-state">This list doesn't exist or isn't shared anymore.</p>
           )}
           {status === 'ready' && list && (
-
             <>
               <span className="eyebrow">Shared list · read only</span>
               <h1 className="auth-card__title" style={{ marginTop: '0.5rem' }}>{list.name}</h1>
@@ -73,8 +71,9 @@ export default function SharedListPage() {
                       {item.name}
                       {item.quantity && <span className="item-qty">{item.quantity}</span>}
                       {item.category && <span className="item-badge">{item.category}</span>}
+                     
+                      {item.notes && <span className="item-notes">{item.notes}</span>}
                     </span>
-                    
                   </li>
                 ))}
               </ul>

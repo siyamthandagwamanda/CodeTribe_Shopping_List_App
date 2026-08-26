@@ -21,18 +21,36 @@ export default function DashboardPage() {
   const lists = useAppSelector((s) => s.shopping.lists) ?? [] 
   const listsStatus = useAppSelector((s) => s.shopping.listsStatus)
   const dispatch = useAppDispatch()
+<<<<<<< HEAD
 
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [newCategory, setNewCategory] = useState(CATEGORIES[0])
+=======
+  
+  const [adding, setAdding] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newCategory, setNewCategory] = useState(CATEGORIES[0])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+>>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
   const [searchParams, setSearchParams] = useSearchParams()
 
   const query = searchParams.get('q') ?? ''
   const sortBy = (searchParams.get('sort') as SortKey) || DEFAULT_SORT
 
+
   useEffect(() => {
+<<<<<<< HEAD
     if (user?.id) dispatch(fetchLists(user.id))
   }, [user?.id, dispatch])
+=======
+    if (user) {
+      dispatch(fetchLists(user.id))
+    }
+  }, [user, dispatch])
+>>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
+
 
   const visibleLists = useMemo(() => {
     const lowerQuery = query.toLowerCase().trim()
@@ -41,9 +59,19 @@ export default function DashboardPage() {
       : lists
 
     return [...filtered].sort((a, b) => {
-      if (sortBy === 'name') return a.name.localeCompare(b.name)
-      if (sortBy === 'category') return a.category.localeCompare(b.category)
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      if (sortBy === 'name') {
+        return (a.name || '').localeCompare(b.name || '')
+      }
+      if (sortBy === 'category') {
+      
+        const catA = a.category || ''
+        const catB = b.category || ''
+        return catA.localeCompare(catB)
+      }
+      
+      const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0
+      const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0
+      return timeB - timeA
     })
   }, [lists, query, sortBy])
 
@@ -63,6 +91,7 @@ export default function DashboardPage() {
 
   async function submitNewList() {
     const trimmed = newName.trim()
+<<<<<<< HEAD
     if (!trimmed) {
       dispatch(notify('Please enter a list name.', 'error'))
       return
@@ -77,6 +106,24 @@ export default function DashboardPage() {
       setAdding(false)
     } else {
       dispatch(notify('Could not create that list.', 'error'))
+=======
+    if (!trimmed || !user || isSubmitting) return
+
+    try {
+      setIsSubmitting(true)
+      const result = await dispatch(createList({ userId: user.id, name: trimmed, category: newCategory }))
+      
+      if (createList.fulfilled.match(result)) {
+        dispatch(notify(`Created "${trimmed}"`, 'success'))
+        setNewName('')
+        setNewCategory(CATEGORIES[0])
+        setAdding(false) 
+      } else {
+        dispatch(notify('Could not create that list.', 'error'))
+      }
+    } finally {
+      setIsSubmitting(false) 
+>>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
     }
   }
 
@@ -131,13 +178,21 @@ export default function DashboardPage() {
               <input
                 autoFocus
                 value={newName}
+                disabled={isSubmitting}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && submitNewList()}
                 placeholder="List name, e.g. Groceries"
                 className="input"
               />
+<<<<<<< HEAD
               <select 
                 value={newCategory} 
+=======
+
+              <select 
+                value={newCategory} 
+                disabled={isSubmitting}
+>>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
                 onChange={(e) => setNewCategory(e.target.value)} 
                 className="input add-form__select"
               >
@@ -145,8 +200,29 @@ export default function DashboardPage() {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
+<<<<<<< HEAD
               <button type="button" onClick={submitNewList} className="add-form__btn">
                 Add
+=======
+
+              <button 
+                type="button" 
+                onClick={submitNewList} 
+                disabled={isSubmitting} 
+                className="add-form__btn"
+              >
+                {isSubmitting ? 'Adding...' : 'Add'}
+              </button>
+              
+              <button 
+                type="button" 
+                onClick={() => setAdding(false)} 
+                disabled={isSubmitting}
+                className="add-form__cancel-btn"
+                style={{ marginLeft: '4px', opacity: 0.6 }}
+              >
+                Cancel
+>>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
               </button>
               <button type="button" onClick={() => setAdding(false)} className="add-form__cancel-btn">
                 Cancel

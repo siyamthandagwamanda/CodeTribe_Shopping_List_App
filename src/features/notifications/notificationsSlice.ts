@@ -16,11 +16,20 @@ const notificationsSlice = createSlice({
       },
       prepare(message: string, kind: Notification['kind'] = 'success') {
         
-        return { payload: { id: String(Date.now()), kind, message } };
+        const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID 
+          ? crypto.randomUUID() 
+          : String(Date.now() + Math.random());
+
+        return { 
+          payload: { 
+            id: uniqueId, 
+            kind, 
+            message 
+          } 
+        };
       },
     },
     dismiss(state, action: PayloadAction<string>) {
-     
       state.items = state.items.filter((n) => n.id !== action.payload);
     },
   },

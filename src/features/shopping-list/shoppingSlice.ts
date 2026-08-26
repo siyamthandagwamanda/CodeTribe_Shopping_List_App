@@ -27,7 +27,7 @@ export const fetchLists = createAsyncThunk<ShoppingList[], string, { rejectValue
   'shopping/fetchLists',
   async (userId, { rejectWithValue }) => {
     try {
-      return await api.get<ShoppingList[]>(`/lists?userId=${userId}&_sort=updatedAt&_order=desc`)
+      return await api.get<ShoppingList[]>(`/list?userId=${userId}&_sort=updatedAt&_order=desc`)
     } catch (err) {
       return rejectWithValue(errMsg(err, 'Could not load your lists.'))
     }
@@ -38,12 +38,10 @@ export const createList = createAsyncThunk<
   ShoppingList,
   { userId: string; name: string; category: string },
   { rejectValue: string }
-
 >('shopping/createList', async ({ userId, name, category }, { rejectWithValue }) => {
   try {
     const now = new Date().toISOString()
-    return await api.post<ShoppingList>('/lists', {
-      id: crypto.randomUUID(),
+    return await api.post<ShoppingList>('/list', {
       userId,
       name,
       category,
@@ -55,14 +53,18 @@ export const createList = createAsyncThunk<
   }
 })
 
+
 export const renameList = createAsyncThunk<
   ShoppingList,
-  { id: string; name: string },
+  { id: string; name: string; category: string },
   { rejectValue: string }
-
->('shopping/renameList', async ({ id, name }, { rejectWithValue }) => {
+>('shopping/renameList', async ({ id, name, category }, { rejectWithValue }) => {
   try {
-    return await api.patch<ShoppingList>(`/lists/${id}`, { name, updatedAt: new Date().toISOString() })
+    return await api.patch<ShoppingList>(`/list/${id}`, { 
+      name, 
+      category, 
+      updatedAt: new Date().toISOString() 
+    })
   } catch (err) {
     return rejectWithValue(errMsg(err, 'Could not rename the list.'))
   }
@@ -72,10 +74,8 @@ export const deleteList = createAsyncThunk<string, string, { rejectValue: string
   'shopping/deleteList',
   async (id, { rejectWithValue }) => {
     try {
-      
       const items = await api.get<ShoppingItem[]>(`/items?listId=${id}`)
       await Promise.all(items.map((item) => api.delete(`/items/${item.id}`)))
-      await api.delete(`/lists/${id}`)
       return id
     } catch (err) {
       return rejectWithValue(errMsg(err, 'Could not delete the list.'))
@@ -87,7 +87,6 @@ export const fetchItems = createAsyncThunk<
   { listId: string; items: ShoppingItem[] },
   string,
   { rejectValue: string }
-
 >('shopping/fetchItems', async (listId, { rejectWithValue }) => {
   try {
     const items = await api.get<ShoppingItem[]>(`/items?listId=${listId}`)
@@ -111,7 +110,6 @@ export const createItem = createAsyncThunk<ShoppingItem, NewItemInput, { rejectV
   async (input, { rejectWithValue }) => {
     try {
       return await api.post<ShoppingItem>('/items', {
-        id: crypto.randomUUID(),
         ...input,
         checked: false,
         createdAt: new Date().toISOString(),
@@ -126,7 +124,6 @@ export const updateItem = createAsyncThunk<
   ShoppingItem,
   { id: string; listId: string; patch: Partial<ShoppingItem> },
   { rejectValue: string }
-
 >('shopping/updateItem', async ({ id, patch }, { rejectWithValue }) => {
   try {
     return await api.patch<ShoppingItem>(`/items/${id}`, patch)
@@ -158,7 +155,6 @@ const shoppingSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-    
       .addCase(fetchLists.pending, (state) => {
         state.listsStatus = 'loading'
       })
@@ -181,7 +177,6 @@ const shoppingSlice = createSlice({
         state.lists = state.lists.filter((l) => l.id !== action.payload)
         delete state.itemsByList[action.payload]
       })
-      
       .addCase(fetchItems.pending, (state) => {
         state.itemsStatus = 'loading'
       })

@@ -2,9 +2,10 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { ShoppingBag, LogOut, User, Search } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
+import ToastContainer from '@/components/Container' 
 
 const navItems = [
-  { to: '/dashboard', label: 'Overview' },
+  
   { to: '/dashboard', label: 'Dashboard' },
 ]
 
@@ -14,17 +15,16 @@ export default function Layout() {
   const navigate = useNavigate()
 
   function handleLogout() {
-    dispatch(logout())
+    
     navigate('/', { replace: true })
+    dispatch(logout())
   }
 
   return (
     <div className="app">
-
       <header className="app-header">
         <div className="app-header__inner">
           <div className="app-header__left">
-
             <NavLink to="/dashboard" className="brand">
               <span className="brand__icon">
                 <ShoppingBag size={16} strokeWidth={2.25} />
@@ -47,11 +47,9 @@ export default function Layout() {
                 </NavLink>
               ))}
             </nav>
-
           </div>
 
           <div className="app-header__right">
-
             <button
               type="button"
               aria-label="Search"
@@ -76,11 +74,13 @@ export default function Layout() {
         <Outlet />
       </main>
 
+      
+      <ToastContainer />
+
       <footer className="app-footer">
         {new Date().getFullYear()} ShopSort &middot; signed in as{' '}
         {user?.name ?? 'guest'}
       </footer>
-      
     </div>
   )
 }

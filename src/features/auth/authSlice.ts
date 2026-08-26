@@ -29,23 +29,25 @@ export const registerUser = createAsyncThunk<
   User,
   { name: string; surname: string; cellNumber: string; email: string; password: string },
   { rejectValue: string }
-
 >('auth/register', async (form, { rejectWithValue }) => {
   try {
-    const existing = await api.get<KeptUser[]>(
-      `/users?email=${encodeURIComponent(form.email.toLowerCase())}`
-    )
-    if (existing.length > 0) {
+    const targetEmail = form.email.toLowerCase()
+    
+    const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
+    const exactMatch = matches.find(u => u.email.toLowerCase() === targetEmail)
+    
+    if (exactMatch) {
       return rejectWithValue('An account with that email already exists.')
     }
    
     const passwordHash = await bcrypt.hash(form.password, SALT_ROUNDS)
+
+    
     const created = await api.post<KeptUser>('/users', {
-      id: crypto.randomUUID(),
       name: form.name,
       surname: form.surname,
       cellNumber: form.cellNumber,
-      email: form.email.toLowerCase(),
+      email: targetEmail,
       password: passwordHash,
     })
 
@@ -63,14 +65,12 @@ export const loginUser = createAsyncThunk<
   User,
   { email: string; password: string },
   { rejectValue: string }
-
 >('auth/login', async ({ email, password }, { rejectWithValue }) => {
   try {
-    const matches = await api.get<KeptUser[]>(
-      `/users?email=${encodeURIComponent(email.toLowerCase())}`
-    )
+    const targetEmail = email.toLowerCase()
+    const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
 
-    const account = matches[0]
+    const account = matches.find(u => u.email.toLowerCase() === targetEmail)
     if (!account) {
       return rejectWithValue('Email or password is incorrect.')
     }
@@ -95,11 +95,19 @@ export const updateProfile = createAsyncThunk<
   { rejectValue: string }
 >('auth/updateProfile', async (form, { rejectWithValue }) => {
   try {
+    const targetEmail = form.email.toLowerCase()
+
+    const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
+    const duplicate = matches.find(u => u.email.toLowerCase() === targetEmail && u.id !== form.id)
+    if (duplicate) {
+      return rejectWithValue('This email is already in use by another account.')
+    }
+
     const patch: Partial<KeptUser> = {
       name: form.name,
       surname: form.surname,
       cellNumber: form.cellNumber,
-      email: form.email.toLowerCase(),
+      email: targetEmail,
     }
 
     if (form.password) {
@@ -127,7 +135,8 @@ const authSlice = createSlice({
       state.user = null
       state.status = 'idle'
       state.error = null
-      window.localStorage.removeItem(SESSION_KEY)
+      
+      writeStorage(SESSION_KEY, null)
     },
     clearAuthError(state) {
       state.error = null

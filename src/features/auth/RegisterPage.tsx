@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { ShoppingBag, Eye, EyeOff } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const { user, status, error } = useAppSelector((s) => s.auth)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  
   const [name, setName] = useState('')
   const [surname, setSurname] = useState('')
   const [cellNumber, setCellNumber] = useState('')
@@ -16,16 +17,36 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
+  const isLoading = status === 'loading'
+
+  
+  useEffect(() => {
+    return () => {
+      dispatch(clearAuthError())
+    }
+  }, [dispatch])
+
   if (user) return <Navigate to="/dashboard" replace />
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    if (isLoading) return
+
     dispatch(clearAuthError())
 
-    const result = await dispatch(registerUser({ name, surname, cellNumber, email, password }))
+    const result = await dispatch(
+      registerUser({ 
+        name: name.trim(), 
+        surname: surname.trim(), 
+        cellNumber: cellNumber.trim(), 
+        email: email.trim(), 
+        password 
+      })
+    )
 
     if (registerUser.fulfilled.match(result)) {
-      dispatch(notify(`Welcome to ShopSort, ${name}!`, 'success'))
+      dispatch(notify(`Welcome to ShopSort, ${name.trim()}!`, 'success'))
+     
       navigate('/dashboard', { replace: true })
     }
   }
@@ -51,6 +72,7 @@ export default function RegisterPage() {
               <Field label="First Name">
                 <input
                   required
+                  disabled={isLoading}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Alex"
@@ -60,6 +82,7 @@ export default function RegisterPage() {
               <Field label="Surname">
                 <input
                   required
+                  disabled={isLoading}
                   value={surname}
                   onChange={(e) => setSurname(e.target.value)}
                   placeholder="Carter"
@@ -67,32 +90,38 @@ export default function RegisterPage() {
                 />
               </Field>
             </div>
+            
             <Field label="Email Address">
               <input
                 type="email"
                 required
+                disabled={isLoading}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="alex@example.com"
                 className="input"
               />
             </Field>
+            
             <Field label="Cell Number">
               <input
                 type="tel"
                 required
+                disabled={isLoading}
                 value={cellNumber}
                 onChange={(e) => setCellNumber(e.target.value)}
                 placeholder="082 123 4567"
                 className="input"
               />
             </Field>
+            
             <Field label="Password">
               <div className="password-field">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   minLength={6}
+                  disabled={isLoading}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -100,6 +129,7 @@ export default function RegisterPage() {
                 />
                 <button
                   type="button"
+                  disabled={isLoading}
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   className="password-toggle"
@@ -119,10 +149,10 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={status === 'loading'}
+              disabled={isLoading}
               className="btn btn-primary btn-block"
             >
-              {status === 'loading' ? 'Creating account…' : 'Create Free Account'}
+              {isLoading ? 'Creating account…' : 'Create Free Account'}
             </button>
           </form>
 

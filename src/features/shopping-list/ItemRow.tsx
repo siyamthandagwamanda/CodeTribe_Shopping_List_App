@@ -15,6 +15,7 @@ export default function ItemRow({
   item: ShoppingItem
 }) {
   const [editing, setEditing] = useState(false)
+<<<<<<< HEAD
   
   
   const [draftName, setDraftName] = useState(item.name || '')
@@ -22,14 +23,29 @@ export default function ItemRow({
   const [draftCategory, setDraftCategory] = useState(item.category || CATEGORIES[0])
   const [draftNotes, setDraftNotes] = useState(item.notes || '')
   const [draftImage, setDraftImage] = useState(item.image || '')
+=======
+  const [draftName, setDraftName] = useState(item.name)
+  const [draftQty, setDraftQty] = useState(item.quantity)
+  const [draftCategory, setDraftCategory] = useState(item.category)
+  const [draftNotes, setDraftNotes] = useState(item.notes)
+  const [draftImage, setDraftImage] = useState(item.image)
+  const [isProcessing, setIsProcessing] = useState(false) 
+>>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
   
   const dispatch = useAppDispatch()
 
-  function save() {
+  async function save() {
     const trimmed = draftName.trim()
+    if (!trimmed || isProcessing) return
 
+<<<<<<< HEAD
     if (trimmed) {
       dispatch(
+=======
+    try {
+      setIsProcessing(true)
+      const result = await dispatch(
+>>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
         updateItem({
           id: item.id,
           listId,
@@ -42,6 +58,7 @@ export default function ItemRow({
           },
         })
       )
+<<<<<<< HEAD
       setEditing(false)
     } else {
       dispatch(notify('Item name cannot be empty.', 'error'))
@@ -55,17 +72,56 @@ export default function ItemRow({
     setDraftCategory(item.category || CATEGORIES[0])
     setDraftNotes(item.notes || '')
     setDraftImage(item.image || '')
+=======
+
+      if (updateItem.fulfilled.match(result)) {
+        setEditing(false) 
+      } else {
+        dispatch(notify('Could not save item updates.', 'error'))
+      }
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  function handleCancel() {
+    
+    setDraftName(item.name)
+    setDraftQty(item.quantity)
+    setDraftCategory(item.category)
+    setDraftNotes(item.notes)
+    setDraftImage(item.image)
+>>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
     setEditing(false)
   }
 
-  function toggle() {
-    dispatch(updateItem({ id: item.id, listId, patch: { checked: !item.checked } }))
+  async function toggle() {
+    if (isProcessing) return
+    try {
+      setIsProcessing(true)
+      await dispatch(updateItem({ id: item.id, listId, patch: { checked: !item.checked } }))
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   async function remove() {
+<<<<<<< HEAD
     const result = await dispatch(deleteItem({ id: item.id, listId }))
     if (deleteItem.fulfilled.match(result)) {
       dispatch(notify(`Removed "${item.name}"`, 'info'))
+=======
+    if (isProcessing) return
+    try {
+      setIsProcessing(true)
+      const result = await dispatch(deleteItem({ id: item.id, listId }))
+
+      if (deleteItem.fulfilled.match(result)) {
+        dispatch(notify(`Removed "${item.name}"`, 'info'))
+      }
+    } finally {
+      setIsProcessing(false)
+>>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
     }
   }
 
@@ -76,10 +132,11 @@ export default function ItemRow({
   }
 
   return (
-    <li className="item-row">
+    <li className={`item-row ${isProcessing ? 'item-row--disabled' : ''}`} style={{ opacity: isProcessing ? 0.6 : 1 }}>
       <button
         type="button"
         onClick={toggle}
+        disabled={isProcessing}
         aria-pressed={item.checked}
         aria-label={item.checked ? 'Mark as not bought' : 'Mark as bought'}
         className={`item-checkbox${item.checked ? ' item-checkbox--checked' : ''}`}
@@ -96,6 +153,7 @@ export default function ItemRow({
           <input
             autoFocus
             value={draftName}
+            disabled={isProcessing}
             onChange={(e) => setDraftName(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Item name"
@@ -104,6 +162,7 @@ export default function ItemRow({
 
           <input
             value={draftQty}
+            disabled={isProcessing}
             placeholder="qty"
             onChange={(e) => setDraftQty(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -112,6 +171,7 @@ export default function ItemRow({
 
           <select
             value={draftCategory}
+            disabled={isProcessing}
             onChange={(e) => setDraftCategory(e.target.value)}
             className="item-edit__select"
           >
@@ -122,6 +182,7 @@ export default function ItemRow({
 
           <input
             value={draftNotes}
+            disabled={isProcessing}
             placeholder="notes"
             onChange={(e) => setDraftNotes(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -130,6 +191,7 @@ export default function ItemRow({
 
           <input
             value={draftImage}
+            disabled={isProcessing}
             placeholder="image URL"
             onChange={(e) => setDraftImage(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -146,6 +208,7 @@ export default function ItemRow({
       )}
 
       <div className="item-actions">
+<<<<<<< HEAD
         <button
           type="button"
           onClick={() => (editing ? save() : setEditing(true))}
@@ -174,6 +237,50 @@ export default function ItemRow({
             <Trash2 size={13} />
           </button>
         )}
+=======
+        {editing ? (
+          <>
+            <button
+              type="button"
+              onClick={save}
+              disabled={isProcessing || !draftName.trim()}
+              aria-label="Save item"
+              className="icon-btn"
+            >
+              <Check size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isProcessing}
+              aria-label="Cancel editing"
+              className="icon-btn"
+            >
+              <X size={13} />
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            disabled={isProcessing}
+            aria-label="Edit item"
+            className="icon-btn"
+          >
+            <Pencil size={13} />
+          </button>
+        )}
+        
+        <button
+          type="button"
+          onClick={remove}
+          disabled={isProcessing}
+          aria-label="Delete item"
+          className="icon-btn icon-btn--danger"
+        >
+          <Trash2 size={13} />
+        </button>
+>>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
       </div>
     </li>
   )
