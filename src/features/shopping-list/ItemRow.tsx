@@ -15,37 +15,28 @@ export default function ItemRow({
   item: ShoppingItem
 }) {
   const [editing, setEditing] = useState(false)
-<<<<<<< HEAD
-  
+  const [isProcessing, setIsProcessing] = useState(false) 
+
   
   const [draftName, setDraftName] = useState(item.name || '')
   const [draftQty, setDraftQty] = useState(item.quantity || '')
   const [draftCategory, setDraftCategory] = useState(item.category || CATEGORIES[0])
   const [draftNotes, setDraftNotes] = useState(item.notes || '')
   const [draftImage, setDraftImage] = useState(item.image || '')
-=======
-  const [draftName, setDraftName] = useState(item.name)
-  const [draftQty, setDraftQty] = useState(item.quantity)
-  const [draftCategory, setDraftCategory] = useState(item.category)
-  const [draftNotes, setDraftNotes] = useState(item.notes)
-  const [draftImage, setDraftImage] = useState(item.image)
-  const [isProcessing, setIsProcessing] = useState(false) 
->>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
   
   const dispatch = useAppDispatch()
 
   async function save() {
     const trimmed = draftName.trim()
-    if (!trimmed || isProcessing) return
+    if (!trimmed) {
+      dispatch(notify('Item name cannot be empty.', 'error'))
+      return
+    }
+    if (isProcessing) return
 
-<<<<<<< HEAD
-    if (trimmed) {
-      dispatch(
-=======
     try {
       setIsProcessing(true)
       const result = await dispatch(
->>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
         updateItem({
           id: item.id,
           listId,
@@ -58,21 +49,6 @@ export default function ItemRow({
           },
         })
       )
-<<<<<<< HEAD
-      setEditing(false)
-    } else {
-      dispatch(notify('Item name cannot be empty.', 'error'))
-    }
-  }
-
-  
-  function cancel() {
-    setDraftName(item.name || '')
-    setDraftQty(item.quantity || '')
-    setDraftCategory(item.category || CATEGORIES[0])
-    setDraftNotes(item.notes || '')
-    setDraftImage(item.image || '')
-=======
 
       if (updateItem.fulfilled.match(result)) {
         setEditing(false) 
@@ -85,13 +61,11 @@ export default function ItemRow({
   }
 
   function handleCancel() {
-    
-    setDraftName(item.name)
-    setDraftQty(item.quantity)
-    setDraftCategory(item.category)
-    setDraftNotes(item.notes)
-    setDraftImage(item.image)
->>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
+    setDraftName(item.name || '')
+    setDraftQty(item.quantity || '')
+    setDraftCategory(item.category || CATEGORIES[0])
+    setDraftNotes(item.notes || '')
+    setDraftImage(item.image || '')
     setEditing(false)
   }
 
@@ -106,11 +80,6 @@ export default function ItemRow({
   }
 
   async function remove() {
-<<<<<<< HEAD
-    const result = await dispatch(deleteItem({ id: item.id, listId }))
-    if (deleteItem.fulfilled.match(result)) {
-      dispatch(notify(`Removed "${item.name}"`, 'info'))
-=======
     if (isProcessing) return
     try {
       setIsProcessing(true)
@@ -121,14 +90,12 @@ export default function ItemRow({
       }
     } finally {
       setIsProcessing(false)
->>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
     }
   }
 
- 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter') save()
-    if (e.key === 'Escape') cancel()
+    if (e.key === 'Escape') handleCancel()
   }
 
   return (
@@ -208,36 +175,6 @@ export default function ItemRow({
       )}
 
       <div className="item-actions">
-<<<<<<< HEAD
-        <button
-          type="button"
-          onClick={() => (editing ? save() : setEditing(true))}
-          aria-label={editing ? 'Save item' : 'Edit item'}
-          className="icon-btn"
-        >
-          {editing ? <Check size={13} /> : <Pencil size={13} />}
-        </button>
-
-        {editing ? (
-          <button
-            type="button"
-            onClick={cancel}
-            aria-label="Cancel editing"
-            className="icon-btn"
-          >
-            <X size={13} />
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={remove}
-            aria-label="Delete item"
-            className="icon-btn icon-btn--danger"
-          >
-            <Trash2 size={13} />
-          </button>
-        )}
-=======
         {editing ? (
           <>
             <button
@@ -260,27 +197,27 @@ export default function ItemRow({
             </button>
           </>
         ) : (
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            disabled={isProcessing}
-            aria-label="Edit item"
-            className="icon-btn"
-          >
-            <Pencil size={13} />
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              disabled={isProcessing}
+              aria-label="Edit item"
+              className="icon-btn"
+            >
+              <Pencil size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={remove}
+              disabled={isProcessing}
+              aria-label="Delete item"
+              className="icon-btn icon-btn--danger"
+            >
+              <Trash2 size={13} />
+            </button>
+          </>
         )}
-        
-        <button
-          type="button"
-          onClick={remove}
-          disabled={isProcessing}
-          aria-label="Delete item"
-          className="icon-btn icon-btn--danger"
-        >
-          <Trash2 size={13} />
-        </button>
->>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
       </div>
     </li>
   )

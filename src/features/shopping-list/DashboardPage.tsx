@@ -21,36 +21,22 @@ export default function DashboardPage() {
   const lists = useAppSelector((s) => s.shopping.lists) ?? [] 
   const listsStatus = useAppSelector((s) => s.shopping.listsStatus)
   const dispatch = useAppDispatch()
-<<<<<<< HEAD
-
-  const [adding, setAdding] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [newCategory, setNewCategory] = useState(CATEGORIES[0])
-=======
   
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [newCategory, setNewCategory] = useState(CATEGORIES[0])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
->>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
   const [searchParams, setSearchParams] = useSearchParams()
 
   const query = searchParams.get('q') ?? ''
   const sortBy = (searchParams.get('sort') as SortKey) || DEFAULT_SORT
 
-
   useEffect(() => {
-<<<<<<< HEAD
-    if (user?.id) dispatch(fetchLists(user.id))
-  }, [user?.id, dispatch])
-=======
-    if (user) {
+    if (user?.id) {
       dispatch(fetchLists(user.id))
     }
-  }, [user, dispatch])
->>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
-
+  }, [user?.id, dispatch])
 
   const visibleLists = useMemo(() => {
     const lowerQuery = query.toLowerCase().trim()
@@ -63,7 +49,6 @@ export default function DashboardPage() {
         return (a.name || '').localeCompare(b.name || '')
       }
       if (sortBy === 'category') {
-      
         const catA = a.category || ''
         const catB = b.category || ''
         return catA.localeCompare(catB)
@@ -91,23 +76,12 @@ export default function DashboardPage() {
 
   async function submitNewList() {
     const trimmed = newName.trim()
-<<<<<<< HEAD
+
     if (!trimmed) {
       dispatch(notify('Please enter a list name.', 'error'))
       return
     }
-    if (!user?.id) return
-
-    const result = await dispatch(createList({ userId: user.id, name: trimmed, category: newCategory }))
-    
-    if (createList.fulfilled.match(result)) {
-      dispatch(notify(`Created "${trimmed}"`, 'success'))
-      setNewName('')
-      setAdding(false)
-    } else {
-      dispatch(notify('Could not create that list.', 'error'))
-=======
-    if (!trimmed || !user || isSubmitting) return
+    if (!user?.id || isSubmitting) return
 
     try {
       setIsSubmitting(true)
@@ -123,7 +97,6 @@ export default function DashboardPage() {
       }
     } finally {
       setIsSubmitting(false) 
->>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
     }
   }
 
@@ -184,15 +157,10 @@ export default function DashboardPage() {
                 placeholder="List name, e.g. Groceries"
                 className="input"
               />
-<<<<<<< HEAD
-              <select 
-                value={newCategory} 
-=======
 
               <select 
                 value={newCategory} 
                 disabled={isSubmitting}
->>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
                 onChange={(e) => setNewCategory(e.target.value)} 
                 className="input add-form__select"
               >
@@ -200,10 +168,6 @@ export default function DashboardPage() {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-<<<<<<< HEAD
-              <button type="button" onClick={submitNewList} className="add-form__btn">
-                Add
-=======
 
               <button 
                 type="button" 
@@ -219,12 +183,7 @@ export default function DashboardPage() {
                 onClick={() => setAdding(false)} 
                 disabled={isSubmitting}
                 className="add-form__cancel-btn"
-                style={{ marginLeft: '4px', opacity: 0.6 }}
               >
-                Cancel
->>>>>>> 47c6c6fa150262d7f0c60c552bc23cf74a6c8805
-              </button>
-              <button type="button" onClick={() => setAdding(false)} className="add-form__cancel-btn">
                 Cancel
               </button>
             </div>
