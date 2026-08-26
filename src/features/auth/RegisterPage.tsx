@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent, type ReactNode } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { ShoppingBag, Eye, EyeOff } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
@@ -9,7 +9,7 @@ export default function RegisterPage() {
   const { user, status, error } = useAppSelector((s) => s.auth)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-
+  
   const [name, setName] = useState('')
   const [surname, setSurname] = useState('')
   const [cellNumber, setCellNumber] = useState('')
@@ -19,6 +19,7 @@ export default function RegisterPage() {
 
   const isLoading = status === 'loading'
 
+  
   useEffect(() => {
     return () => {
       dispatch(clearAuthError())
@@ -34,18 +35,18 @@ export default function RegisterPage() {
     dispatch(clearAuthError())
 
     const result = await dispatch(
-      registerUser({
-        name: name.trim(),
-        surname: surname.trim(),
-        cellNumber: cellNumber.trim(),
-        email: email.trim(),
-        password
+      registerUser({ 
+        name: name.trim(), 
+        surname: surname.trim(), 
+        cellNumber: cellNumber.trim(), 
+        email: email.trim(), 
+        password 
       })
     )
 
     if (registerUser.fulfilled.match(result)) {
       dispatch(notify(`Welcome to ShopSort, ${name.trim()}!`, 'success'))
-
+     
       navigate('/dashboard', { replace: true })
     }
   }
@@ -89,7 +90,7 @@ export default function RegisterPage() {
                 />
               </Field>
             </div>
-
+            
             <Field label="Email Address">
               <input
                 type="email"
@@ -101,7 +102,7 @@ export default function RegisterPage() {
                 className="input"
               />
             </Field>
-
+            
             <Field label="Cell Number">
               <input
                 type="tel"
@@ -113,7 +114,7 @@ export default function RegisterPage() {
                 className="input"
               />
             </Field>
-
+            
             <Field label="Password">
               <div className="password-field">
                 <input
@@ -139,9 +140,9 @@ export default function RegisterPage() {
             </Field>
 
             <p className="auth-form__terms">
-              Your password is hashed with bcrypt before it's stored. By
-              signing up you agree to our Terms of Service and Privacy
-              Policy.
+              Your password is hashed with bcrypt before it's ever stored — we
+              never see or keep it in plain text. By signing up you agree to
+              our Terms of Service and Privacy Policy.
             </p>
 
             {error && <p className="error-banner">{error}</p>}
@@ -164,7 +165,7 @@ export default function RegisterPage() {
   )
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="field">
       <span className="field__label">{label}</span>

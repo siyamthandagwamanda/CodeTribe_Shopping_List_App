@@ -27,6 +27,7 @@ export interface ShoppingItem{
 export interface ShoppingList{
     id: string;
     userId: string;
+    listId: string;
     name: string;
     category: string;
     createdAt: string;

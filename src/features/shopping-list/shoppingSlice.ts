@@ -205,7 +205,7 @@ const shoppingSlice = createSlice({
         const listId = action.payload.listId
         state.itemsByList[listId] = [...(state.itemsByList[listId] ?? []), action.payload]
         
-        // Bubbles list to top on item mutations
+      
         const parentList = state.lists.find((l) => l.id === listId)
         if (parentList) {
           parentList.updatedAt = action.payload.createdAt

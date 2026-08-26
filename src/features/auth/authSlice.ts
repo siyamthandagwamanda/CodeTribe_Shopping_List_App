@@ -25,127 +25,107 @@ const initialState: AuthState = {
   error: null,
 }
 
-type RejectValue = { rejectValue: string }
-
-type RegisterForm = {
-  name: string
-  surname: string
-  cellNumber: string
-  email: string
-  password: string
-}
-
-type LoginForm = {
-  email: string
-  password: string
-}
-
-type UpdateProfileForm = {
-  id: string
-  name: string
-  surname: string
-  cellNumber: string
-  email: string
-  password?: string
-}
-
-export const registerUser = createAsyncThunk<User, RegisterForm, RejectValue>(
-  'auth/register',
-  async (form, { rejectWithValue }) => {
-    try {
-      const targetEmail = form.email.trim().toLowerCase()
-
-      const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
-      const exactMatch = matches.find(u => u.email.toLowerCase() === targetEmail)
-
-      if (exactMatch) {
-        return rejectWithValue('An account with that email already exists.')
-      }
-
-      const passwordHash = await bcrypt.hash(form.password, SALT_ROUNDS)
-
-      const created = await api.post<KeptUser>('/users', {
-        name: form.name.trim(),
-        surname: form.surname.trim(),
-        cellNumber: form.cellNumber.trim(),
-        email: targetEmail,
-        password: passwordHash,
-      })
-
-      const publicUser = toPublicUser(created)
-      writeStorage(SESSION_KEY, publicUser)
-      return publicUser
-
-    } catch (err) {
-      if (err instanceof ApiError) return rejectWithValue(err.message)
-      return rejectWithValue('Something went wrong. Try again.')
+export const registerUser = createAsyncThunk<
+  User,
+  { name: string; surname: string; cellNumber: string; email: string; password: string },
+  { rejectValue: string }
+>('auth/register', async (form, { rejectWithValue }) => {
+  try {
+    const targetEmail = form.email.toLowerCase()
+    
+    const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
+    const exactMatch = matches.find(u => u.email.toLowerCase() === targetEmail)
+    
+    if (exactMatch) {
+      return rejectWithValue('An account with that email already exists.')
     }
+   
+    const passwordHash = await bcrypt.hash(form.password, SALT_ROUNDS)
+
+    
+    const created = await api.post<KeptUser>('/users', {
+      name: form.name,
+      surname: form.surname,
+      cellNumber: form.cellNumber,
+      email: targetEmail,
+      password: passwordHash,
+    })
+
+    const publicUser = toPublicUser(created)
+    writeStorage(SESSION_KEY, publicUser)
+    return publicUser
+
+  } catch (err) {
+    if (err instanceof ApiError) return rejectWithValue(err.message)
+    return rejectWithValue('Something went wrong. Try again.')
   }
-)
+})
 
-export const loginUser = createAsyncThunk<User, LoginForm, RejectValue>(
-  'auth/login',
-  async ({ email, password }, { rejectWithValue }) => {
-    try {
-      const targetEmail = email.trim().toLowerCase()
-      const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
+export const loginUser = createAsyncThunk<
+  User,
+  { email: string; password: string },
+  { rejectValue: string }
+>('auth/login', async ({ email, password }, { rejectWithValue }) => {
+  try {
+    const targetEmail = email.toLowerCase()
+    const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
 
-      const account = matches.find(u => u.email.toLowerCase() === targetEmail)
-      if (!account) {
-        return rejectWithValue('Email or password is incorrect.')
-      }
-
-      const passwordMatches = await bcrypt.compare(password, account.password)
-      if (!passwordMatches) {
-        return rejectWithValue('Email or password is incorrect.')
-      }
-
-      const publicUser = toPublicUser(account)
-      writeStorage(SESSION_KEY, publicUser)
-      return publicUser
-    } catch (err) {
-      if (err instanceof ApiError) return rejectWithValue(err.message)
-      return rejectWithValue('Something went wrong. Try again.')
+    const account = matches.find(u => u.email.toLowerCase() === targetEmail)
+    if (!account) {
+      return rejectWithValue('Email or password is incorrect.')
     }
-  }
-)
-
-export const updateProfile = createAsyncThunk<User, UpdateProfileForm, RejectValue>(
-  'auth/updateProfile',
-  async (form, { rejectWithValue }) => {
-    try {
-      const targetEmail = form.email.trim().toLowerCase()
-
-      const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
-      const duplicate = matches.find(u => u.email.toLowerCase() === targetEmail && u.id !== form.id)
-      if (duplicate) {
-        return rejectWithValue('This email is already in use by another account.')
-      }
-
-      const patch: Partial<KeptUser> = {
-        name: form.name.trim(),
-        surname: form.surname.trim(),
-        cellNumber: form.cellNumber.trim(),
-        email: targetEmail,
-      }
-
-      if (form.password) {
-        patch.password = await bcrypt.hash(form.password, SALT_ROUNDS)
-      }
-
-      const updated = await api.patch<KeptUser>(`/users/${form.id}`, patch)
-
-      const publicUser = toPublicUser(updated)
-      writeStorage(SESSION_KEY, publicUser)
-
-      return publicUser
-
-    } catch (err) {
-      if (err instanceof ApiError) return rejectWithValue(err.message)
-      return rejectWithValue('Could not update profile. Try again.')
+    
+    const passwordMatches = await bcrypt.compare(password, account.password)
+    if (!passwordMatches) {
+      return rejectWithValue('Email or password is incorrect.')
     }
+
+    const publicUser = toPublicUser(account)
+    writeStorage(SESSION_KEY, publicUser)
+    return publicUser
+  } catch (err) {
+    if (err instanceof ApiError) return rejectWithValue(err.message)
+    return rejectWithValue('Something went wrong. Try again.')
   }
-)
+})
+
+export const updateProfile = createAsyncThunk<
+  User,
+  { id: string; name: string; surname: string; cellNumber: string; email: string; password?: string },
+  { rejectValue: string }
+>('auth/updateProfile', async (form, { rejectWithValue }) => {
+  try {
+    const targetEmail = form.email.toLowerCase()
+
+    const matches = await api.get<KeptUser[]>(`/users?email=${encodeURIComponent(targetEmail)}`)
+    const duplicate = matches.find(u => u.email.toLowerCase() === targetEmail && u.id !== form.id)
+    if (duplicate) {
+      return rejectWithValue('This email is already in use by another account.')
+    }
+
+    const patch: Partial<KeptUser> = {
+      name: form.name,
+      surname: form.surname,
+      cellNumber: form.cellNumber,
+      email: targetEmail,
+    }
+
+    if (form.password) {
+      patch.password = await bcrypt.hash(form.password, SALT_ROUNDS)
+    }
+
+    const updated = await api.patch<KeptUser>(`/users/${form.id}`, patch)
+
+    const publicUser = toPublicUser(updated)
+    writeStorage(SESSION_KEY, publicUser)
+
+    return publicUser
+    
+  } catch (err) {
+    if (err instanceof ApiError) return rejectWithValue(err.message)
+    return rejectWithValue('Could not update profile. Try again.')
+  }
+})
 
 const authSlice = createSlice({
   name: 'auth',
@@ -155,7 +135,7 @@ const authSlice = createSlice({
       state.user = null
       state.status = 'idle'
       state.error = null
-
+      
       writeStorage(SESSION_KEY, null)
     },
     clearAuthError(state) {
