@@ -8,32 +8,38 @@ import ListCard from '@/features/shopping-list/ListCard'
 import type { SortKey } from '@/app/types'
 
 const CATEGORIES = ['General', 'Groceries', 'Household', 'Gifts', 'Work', 'Other']
+const DEFAULT_SORT: SortKey = 'updatedAt'
+
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: 'dateAdded', label: 'Date added' },
+  { value: 'updatedAt', label: 'Last updated' },
   { value: 'name', label: 'Name' },
   { value: 'category', label: 'Category' },
 ]
 
 export default function DashboardPage() {
   const user = useAppSelector((s) => s.auth.user)
-  const { lists, listsStatus } = useAppSelector((s) => s.shopping)
+  const lists = useAppSelector((s) => s.shopping.lists) ?? [] 
+  const listsStatus = useAppSelector((s) => s.shopping.listsStatus)
   const dispatch = useAppDispatch()
+
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [newCategory, setNewCategory] = useState(CATEGORIES[0])
-
   const [searchParams, setSearchParams] = useSearchParams()
+
   const query = searchParams.get('q') ?? ''
-  const sortBy = (searchParams.get('sort') as SortKey) || 'dateAdded'
+  const sortBy = (searchParams.get('sort') as SortKey) || DEFAULT_SORT
 
   useEffect(() => {
-    if (user) dispatch(fetchLists(user.id))
-  }, [user, dispatch])
+    if (user?.id) dispatch(fetchLists(user.id))
+  }, [user?.id, dispatch])
 
   const visibleLists = useMemo(() => {
-    const filtered = query
-      ? lists.filter((l) => l.name.toLowerCase().includes(query.toLowerCase()))
+    const lowerQuery = query.toLowerCase().trim()
+    const filtered = lowerQuery 
+      ? lists.filter((l) => l.name.toLowerCase().includes(lowerQuery)) 
       : lists
+
     return [...filtered].sort((a, b) => {
       if (sortBy === 'name') return a.name.localeCompare(b.name)
       if (sortBy === 'category') return a.category.localeCompare(b.category)
@@ -50,22 +56,28 @@ export default function DashboardPage() {
 
   function updateSort(value: SortKey) {
     const next = new URLSearchParams(searchParams)
-    next.set('sort', value)
+    if (value && value !== DEFAULT_SORT) next.set('sort', value)
+    else next.delete('sort')
     setSearchParams(next, { replace: true })
   }
 
   async function submitNewList() {
     const trimmed = newName.trim()
-    if (trimmed && user) {
-      const result = await dispatch(createList({ userId: user.id, name: trimmed, category: newCategory }))
-      if (createList.fulfilled.match(result)) {
-        dispatch(notify(`Created "${trimmed}"`, 'success'))
-        setNewName('')
-      } else {
-        dispatch(notify('Could not create that list.', 'error'))
-      }
+    if (!trimmed) {
+      dispatch(notify('Please enter a list name.', 'error'))
+      return
     }
-    setAdding(false)
+    if (!user?.id) return
+
+    const result = await dispatch(createList({ userId: user.id, name: trimmed, category: newCategory }))
+    
+    if (createList.fulfilled.match(result)) {
+      dispatch(notify(`Created "${trimmed}"`, 'success'))
+      setNewName('')
+      setAdding(false)
+    } else {
+      dispatch(notify('Could not create that list.', 'error'))
+    }
   }
 
   return (
@@ -74,15 +86,12 @@ export default function DashboardPage() {
         <div>
           <p className="dashboard-title">Your shopping dashboard</p>
           <p className="dashboard-subtitle">
-            {lists.length === 0
-              ? 'Start your first list below.'
-              : `${lists.length} list${lists.length === 1 ? '' : 's'} in progress`}
+            {lists.length === 0 ? 'Start your first list below.' : `${lists.length} list${lists.length === 1 ? '' : 's'} in progress`}
           </p>
         </div>
       </div>
 
       <div className="filter-bar">
-
         <div className="search-input">
           <Search size={14} />
           <input
@@ -101,7 +110,6 @@ export default function DashboardPage() {
             ))}
           </select>
         </label>
-
       </div>
 
       <div className="panel">
@@ -128,23 +136,26 @@ export default function DashboardPage() {
                 placeholder="List name, e.g. Groceries"
                 className="input"
               />
-
-              <select value={newCategory} onChange={(e) => setNewCategory(e.target.value)} className="input add-form__select">
+              <select 
+                value={newCategory} 
+                onChange={(e) => setNewCategory(e.target.value)} 
+                className="input add-form__select"
+              >
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-
               <button type="button" onClick={submitNewList} className="add-form__btn">
                 Add
               </button>
+              <button type="button" onClick={() => setAdding(false)} className="add-form__cancel-btn">
+                Cancel
+              </button>
             </div>
-
           </div>
         ) : (
           <button type="button" onClick={() => setAdding(true)} className="add-trigger">
-            <Plus size={15} />
-            Click button to add a list
+            <Plus size={15} /> Add a new list
           </button>
         )}
       </div>

@@ -10,7 +10,7 @@ export interface KeptUser extends User{
     password: string;
 }
 
-export type SortKey = 'name' | 'category' | 'dateAdded'
+export type SortKey = 'name' | 'category' | 'dateAdded' | 'updatedAt'
 
 export interface ShoppingItem{
     id: string;
