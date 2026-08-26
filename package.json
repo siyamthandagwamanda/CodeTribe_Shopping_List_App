@@ -14,26 +14,15 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",
     "bcryptjs": "^3.0.3",
-    "lucide-react": "^1.31.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
+    "lucide-react": "^1.34.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.18.2"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/node": "^24.13.3",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.4",
-    "eslint": "^10.8.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.3",
-    "globals": "^17.7.0",
-    "json-server": "^0.17.4",
-    "typescript": "~5.0.2",
-    "typescript-eslint": "^6.21.0",
-    "vite": "^6.2.0"
+    "@types/node": "^26.3.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.12"
   }
 }
