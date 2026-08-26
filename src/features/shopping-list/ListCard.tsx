@@ -21,7 +21,7 @@ function relativeDate(iso: string) {
 
 export default function ListCard({ list }: { list: ShoppingList }) {
   const [editing, setEditing] = useState(false)
-  const [draftName, setDraftName] = useState(list.name)
+  const [draftName, setDraftName] = useState(list.name || '')
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   
@@ -29,7 +29,7 @@ export default function ListCard({ list }: { list: ShoppingList }) {
   const navigate = useNavigate()
 
   useEffect(() => {
-    setDraftName(list.name)
+    setDraftName(list.name || '')
   }, [list.name])
 
   async function saveRename(e?: React.MouseEvent | React.KeyboardEvent) {
@@ -45,7 +45,6 @@ export default function ListCard({ list }: { list: ShoppingList }) {
 
     try {
       setIsProcessing(true)
-      
       const result = await dispatch(renameList({ 
         id: list.id, 
         name: trimmed, 
@@ -61,9 +60,9 @@ export default function ListCard({ list }: { list: ShoppingList }) {
     }
   }
 
-  function handleCancelEdit(e: React.MouseEvent) {
-    e.stopPropagation() 
-    setDraftName(list.name) 
+  function handleCancelEdit(e?: React.MouseEvent | React.KeyboardEvent) {
+    if (e) e.stopPropagation()
+    setDraftName(list.name || '') 
     setEditing(false)
   }
 
@@ -82,7 +81,6 @@ export default function ListCard({ list }: { list: ShoppingList }) {
     }
   }
 
- 
   function handleToggleEdit(e: React.MouseEvent) {
     e.stopPropagation() 
     setEditing(true)
@@ -98,16 +96,33 @@ export default function ListCard({ list }: { list: ShoppingList }) {
     setConfirmingDelete(false)
   }
 
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') saveRename(e)
+    if (e.key === 'Escape') handleCancelEdit(e)
+  }
+
+  function handleNavigation(e: React.MouseEvent | React.KeyboardEvent) {
+    if (editing) return
+    
+
+    if (e.type === 'click' || ('key' in e && (e.key === 'Enter' || e.key === ' '))) {
+      e.preventDefault()
+      navigate(`/lists/${list.id}`)
+    }
+  }
+
   return (
     <li 
       className="list-card" 
       style={{ opacity: isProcessing ? 0.6 : 1, pointerEvents: isProcessing ? 'none' : 'auto' }}
     >
-      <button
-        type="button"
-        disabled={isProcessing}
-        onClick={() => !editing && navigate(`/lists/${list.id}`)}
+      <div
+        role="button"
+        tabIndex={editing ? -1 : 0}
+        onClick={handleNavigation}
+        onKeyDown={handleNavigation}
         className="list-card__info"
+        style={{ cursor: editing ? 'default' : 'pointer' }}
       >
         {editing ? (
           <input
@@ -116,7 +131,7 @@ export default function ListCard({ list }: { list: ShoppingList }) {
             disabled={isProcessing}
             onClick={(e) => e.stopPropagation()} 
             onChange={(e) => setDraftName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && saveRename(e)}
+            onKeyDown={handleKeyDown}
             className="list-card__name-input"
           />
         ) : (
@@ -126,7 +141,7 @@ export default function ListCard({ list }: { list: ShoppingList }) {
           </span>
         )}
         <span className="list-card__meta">{relativeDate(list.updatedAt)}</span>
-      </button>
+      </div>
 
       <div className="list-card__actions">
         {editing ? (
@@ -142,7 +157,7 @@ export default function ListCard({ list }: { list: ShoppingList }) {
             </button>
             <button
               type="button"
-              onClick={handleCancelEdit}
+              onClick={(e) => handleCancelEdit(e)}
               disabled={isProcessing}
               aria-label="Cancel rename"
               className="icon-btn icon-btn--square"
