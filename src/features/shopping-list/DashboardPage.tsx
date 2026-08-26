@@ -117,7 +117,7 @@ export default function DashboardPage() {
           <input
             value={query}
             onChange={(e) => updateQuery(e.target.value)}
-            placeholder="Search lists by name…"
+            placeholder="Search your shoplists by name…"
             className="search-input__field"
           />
         </div>
@@ -190,7 +190,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <button type="button" onClick={() => setAdding(true)} className="add-trigger">
-            <Plus size={15} /> Add a new list
+            <Plus size={15} /> Add a new shopping list
           </button>
         )}
       </div>

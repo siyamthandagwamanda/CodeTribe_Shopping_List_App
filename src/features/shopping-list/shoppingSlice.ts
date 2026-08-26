@@ -53,7 +53,6 @@ export const createList = createAsyncThunk<
   }
 })
 
-
 export const renameList = createAsyncThunk<
   ShoppingList,
   { id: string; name: string; category: string },
@@ -74,8 +73,11 @@ export const deleteList = createAsyncThunk<string, string, { rejectValue: string
   'shopping/deleteList',
   async (id, { rejectWithValue }) => {
     try {
-      const items = await api.get<ShoppingItem[]>(`/items?listId=${id}`)
-      await Promise.all(items.map((item) => api.delete(`/items/${item.id}`)))
+      const items = (await api.get<ShoppingItem[]>(`/items?listId=${id}`)) ?? []
+      if (items.length > 0) {
+        await Promise.all(items.map((item) => api.delete(`/items/${item.id}`)))
+      }
+      await api.delete(`/list/${id}`)
       return id
     } catch (err) {
       return rejectWithValue(errMsg(err, 'Could not delete the list.'))
@@ -90,7 +92,7 @@ export const fetchItems = createAsyncThunk<
 >('shopping/fetchItems', async (listId, { rejectWithValue }) => {
   try {
     const items = await api.get<ShoppingItem[]>(`/items?listId=${listId}`)
-    return { listId, items }
+    return { listId, items: items ?? [] }
   } catch (err) {
     return rejectWithValue(errMsg(err, 'Could not load items.'))
   }
@@ -109,11 +111,17 @@ export const createItem = createAsyncThunk<ShoppingItem, NewItemInput, { rejectV
   'shopping/createItem',
   async (input, { rejectWithValue }) => {
     try {
-      return await api.post<ShoppingItem>('/items', {
+      const now = new Date().toISOString()
+      
+      // Post item details and force-bump parent modified index timestamp
+      const item = await api.post<ShoppingItem>('/items', {
         ...input,
         checked: false,
-        createdAt: new Date().toISOString(),
+        createdAt: now,
       })
+      
+      await api.patch(`/list/${input.listId}`, { updatedAt: now })
+      return item
     } catch (err) {
       return rejectWithValue(errMsg(err, 'Could not add the item.'))
     }
@@ -121,25 +129,30 @@ export const createItem = createAsyncThunk<ShoppingItem, NewItemInput, { rejectV
 )
 
 export const updateItem = createAsyncThunk<
-  ShoppingItem,
+  ShoppingItem & { listUpdatedAt: string },
   { id: string; listId: string; patch: Partial<ShoppingItem> },
   { rejectValue: string }
->('shopping/updateItem', async ({ id, patch }, { rejectWithValue }) => {
+>('shopping/updateItem', async ({ id, listId, patch }, { rejectWithValue }) => {
   try {
-    return await api.patch<ShoppingItem>(`/items/${id}`, patch)
+    const now = new Date().toISOString()
+    const item = await api.patch<ShoppingItem>(`/items/${id}`, patch)
+    await api.patch(`/list/${listId}`, { updatedAt: now })
+    return { ...item, listUpdatedAt: now }
   } catch (err) {
     return rejectWithValue(errMsg(err, 'Could not update the item.'))
   }
 })
 
 export const deleteItem = createAsyncThunk<
-  { id: string; listId: string },
+  { id: string; listId: string; listUpdatedAt: string },
   { id: string; listId: string },
   { rejectValue: string }
 >('shopping/deleteItem', async ({ id, listId }, { rejectWithValue }) => {
   try {
+    const now = new Date().toISOString()
     await api.delete(`/items/${id}`)
-    return { id, listId }
+    await api.patch(`/list/${listId}`, { updatedAt: now })
+    return { id, listId, listUpdatedAt: now }
   } catch (err) {
     return rejectWithValue(errMsg(err, 'Could not delete the item.'))
   }
@@ -160,7 +173,7 @@ const shoppingSlice = createSlice({
       })
       .addCase(fetchLists.fulfilled, (state, action) => {
         state.listsStatus = 'idle'
-        state.lists = action.payload
+        state.lists = action.payload ?? []
       })
       .addCase(fetchLists.rejected, (state, action) => {
         state.listsStatus = 'error'
@@ -170,8 +183,8 @@ const shoppingSlice = createSlice({
         state.lists.unshift(action.payload)
       })
       .addCase(renameList.fulfilled, (state, action) => {
-        const index = state.lists.findIndex((l) => l.id === action.payload.id)
-        if (index !== -1) state.lists[index] = action.payload
+        state.lists = state.lists.filter((l) => l.id !== action.payload.id)
+        state.lists.unshift(action.payload)
       })
       .addCase(deleteList.fulfilled, (state, action) => {
         state.lists = state.lists.filter((l) => l.id !== action.payload)
@@ -180,9 +193,9 @@ const shoppingSlice = createSlice({
       .addCase(fetchItems.pending, (state) => {
         state.itemsStatus = 'loading'
       })
-      .addCase(fetchItems.fulfilled, (state, action: PayloadAction<{ listId: string; items: ShoppingItem[] }>) => {
+      .addCase(fetchItems.fulfilled, (state, action) => {
         state.itemsStatus = 'idle'
-        state.itemsByList[action.payload.listId] = action.payload.items
+        state.itemsByList[action.payload.listId] = action.payload.items ?? []
       })
       .addCase(fetchItems.rejected, (state, action) => {
         state.itemsStatus = 'error'
@@ -191,18 +204,39 @@ const shoppingSlice = createSlice({
       .addCase(createItem.fulfilled, (state, action) => {
         const listId = action.payload.listId
         state.itemsByList[listId] = [...(state.itemsByList[listId] ?? []), action.payload]
+        
+        // Bubbles list to top on item mutations
+        const parentList = state.lists.find((l) => l.id === listId)
+        if (parentList) {
+          parentList.updatedAt = action.payload.createdAt
+          state.lists = [parentList, ...state.lists.filter((l) => l.id !== listId)]
+        }
       })
       .addCase(updateItem.fulfilled, (state, action) => {
-        const list = state.itemsByList[action.payload.listId]
-        if (list) {
-          const index = list.findIndex((i) => i.id === action.payload.id)
-          if (index !== -1) list[index] = action.payload
+        const { listId, id, listUpdatedAt } = action.payload
+        const items = state.itemsByList[listId]
+        if (items) {
+          const index = items.findIndex((i) => i.id === id)
+          if (index !== -1) items[index] = action.payload
+        }
+        
+        const parentList = state.lists.find((l) => l.id === listId)
+        if (parentList) {
+          parentList.updatedAt = listUpdatedAt
+          state.lists = [parentList, ...state.lists.filter((l) => l.id !== listId)]
         }
       })
       .addCase(deleteItem.fulfilled, (state, action) => {
-        const list = state.itemsByList[action.payload.listId]
-        if (list) {
-          state.itemsByList[action.payload.listId] = list.filter((i) => i.id !== action.payload.id)
+        const { listId, id, listUpdatedAt } = action.payload
+        const items = state.itemsByList[listId]
+        if (items) {
+          state.itemsByList[listId] = items.filter((i) => i.id !== id)
+        }
+        
+        const parentList = state.lists.find((l) => l.id === listId)
+        if (parentList) {
+          parentList.updatedAt = listUpdatedAt
+          state.lists = [parentList, ...state.lists.filter((l) => l.id !== listId)]
         }
       })
   },
