@@ -2,30 +2,33 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams, Navigate, Link, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, Search, ArrowUpDown, Share2 } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
-import { fetchItems, createItem } from '@/features/shopping-list/shoppingSlice'
+import { fetchItems, createItem, fetchLists } from '@/features/shopping-list/shoppingSlice'
 import { notify } from '@/features/notifications/notificationsSlice'
 import ItemRow from '@/features/shopping-list/ItemRow'
 import type { SortKey } from '@/app/types'
 
 const CATEGORIES = ['Produce', 'Dairy', 'Bakery', 'Meat', 'Pantry', 'Household', 'Other']
+const DEFAULT_SORT: SortKey = 'updatedAt'
+
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: 'dateAdded', label: 'Date added' },
+  { value: 'updatedAt', label: 'Date added' },
   { value: 'name', label: 'Name' },
   { value: 'category', label: 'Category' },
 ]
 
 export default function ListDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const user = useAppSelector((s) => s.auth.user)
   const list = useAppSelector((s) => s.shopping.lists.find((l) => l.id === id))
+  const listsStatus = useAppSelector((s) => s.shopping.listsStatus)
   const items = useAppSelector((s) => (id ? s.shopping.itemsByList[id] ?? [] : []))
   const itemsStatus = useAppSelector((s) => s.shopping.itemsStatus)
   const dispatch = useAppDispatch()
 
   const [searchParams, setSearchParams] = useSearchParams()
   const query = searchParams.get('q') ?? ''
-  const sortBy = (searchParams.get('sort') as SortKey) || 'dateAdded'
+  const sortBy = (searchParams.get('sort') as SortKey) || DEFAULT_SORT
 
-  
   const [name, setName] = useState('')
   const [qty, setQty] = useState('')
   const [category, setCategory] = useState(CATEGORIES[0])
@@ -33,26 +36,40 @@ export default function ListDetailPage() {
   const [image, setImage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false) 
 
+ 
+  useEffect(() => {
+    if (user?.id && !list && listsStatus !== 'loading') {
+      dispatch(fetchLists(user.id))
+    }
+  }, [id, user?.id, list, listsStatus, dispatch])
+
   useEffect(() => {
     if (id) dispatch(fetchItems(id))
   }, [id, dispatch])
 
   const visibleItems = useMemo(() => {
-    const filtered = query
-      ? items.filter((i) => i.name.toLowerCase().includes(query.toLowerCase()))
+    const lowerQuery = query.toLowerCase().trim()
+    const filtered = lowerQuery
+      ? items.filter((i) => i.name.toLowerCase().includes(lowerQuery))
       : items
 
-    const sorted = [...filtered].sort((a, b) => {
-      if (sortBy === 'name') return a.name.localeCompare(b.name)
-      if (sortBy === 'category') return a.category.localeCompare(b.category)
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    return [...filtered].sort((a, b) => {
+      if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '')
+      if (sortBy === 'category') return (a.category || '').localeCompare(b.category || '')
+      
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      return timeB - timeA
     })
-
-    return sorted
   }, [items, query, sortBy])
 
-  if (!list) {
+
+  if (!list && listsStatus !== 'loading' && listsStatus !== 'idle') {
     return <Navigate to="/dashboard" replace />
+  }
+
+  if (listsStatus === 'loading' && !list) {
+    return <p className="empty-state">Loading list parameters...</p>
   }
 
   const checkedCount = items.filter((i) => i.checked).length
@@ -67,10 +84,10 @@ export default function ListDetailPage() {
         createItem({ 
           listId: list.id, 
           name: trimmed, 
-          quantity: qty.trim(), 
-          notes: notes.trim(), 
+          quantity: (qty || '').trim(), 
+          notes: (notes || '').trim(), 
           category, 
-          image: image.trim() 
+          image: (image || '').trim() 
         })
       )
       
@@ -98,7 +115,8 @@ export default function ListDetailPage() {
 
   function updateSort(value: SortKey) {
     const next = new URLSearchParams(searchParams)
-    next.set('sort', value)
+    if (value && value !== DEFAULT_SORT) next.set('sort', value)
+    else next.delete('sort')
     setSearchParams(next, { replace: true })
   }
 
@@ -122,7 +140,7 @@ export default function ListDetailPage() {
 
       <div className="detail-header">
         <div>
-          <p className="detail-title">{list.name}</p>
+          <p className="detail-title">{list?.name}</p>
           <p className="detail-subtitle">
             {items.length === 0
               ? 'No items yet — add your first one below.'
@@ -219,7 +237,7 @@ export default function ListDetailPage() {
         ) : visibleItems.length > 0 ? (
           <ul className="item-list">
             {visibleItems.map((item) => (
-              <ItemRow key={item.id} listId={list.id} item={item} />
+              <ItemRow key={item.id} listId={list?.id || ''} item={item} />
             ))}
           </ul>
         ) : items.length > 0 ? (

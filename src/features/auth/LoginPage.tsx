@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ShoppingBag } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
@@ -15,7 +15,6 @@ export default function LoginPage() {
 
   const isLoading = status === 'loading'
 
-  
   useEffect(() => {
     return () => {
       dispatch(clearAuthError())
@@ -26,7 +25,7 @@ export default function LoginPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (isLoading) return 
+    if (isLoading) return
 
     dispatch(clearAuthError())
 
@@ -34,12 +33,11 @@ export default function LoginPage() {
 
     if (loginUser.fulfilled.match(result)) {
       dispatch(notify(`Welcome back, ${result.payload.name}!`, 'success'))
-      
+
       const from =
         (location.state as { from?: { pathname: string } } | null)?.from
           ?.pathname ?? '/dashboard'
-      
-      
+
       navigate(from, { replace: true })
     }
   }
@@ -65,7 +63,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
-                disabled={isLoading} 
+                disabled={isLoading}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="alex@example.com"
@@ -77,7 +75,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
-                disabled={isLoading} 
+                disabled={isLoading}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -105,7 +103,7 @@ export default function LoginPage() {
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="field">
       <span className="field__label">{label}</span>

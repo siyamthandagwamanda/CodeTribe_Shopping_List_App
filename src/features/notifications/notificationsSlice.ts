@@ -1,4 +1,4 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface Notification {
   id: string;
@@ -15,17 +15,12 @@ const notificationsSlice = createSlice({
         state.items.push(action.payload);
       },
       prepare(message: string, kind: Notification['kind'] = 'success') {
-        
-        const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID 
-          ? crypto.randomUUID() 
-          : String(Date.now() + Math.random());
-
-        return { 
-          payload: { 
-            id: uniqueId, 
-            kind, 
-            message 
-          } 
+        return {
+          payload: {
+            id: nanoid(),
+            kind,
+            message
+          }
         };
       },
     },
