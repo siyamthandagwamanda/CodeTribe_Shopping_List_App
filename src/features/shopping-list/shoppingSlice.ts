@@ -113,7 +113,6 @@ export const createItem = createAsyncThunk<ShoppingItem, NewItemInput, { rejectV
     try {
       const now = new Date().toISOString()
       
-      // Post item details and force-bump parent modified index timestamp
       const item = await api.post<ShoppingItem>('/items', {
         ...input,
         checked: false,
@@ -183,8 +182,8 @@ const shoppingSlice = createSlice({
         state.lists.unshift(action.payload)
       })
       .addCase(renameList.fulfilled, (state, action) => {
-        state.lists = state.lists.filter((l) => l.id !== action.payload.id)
-        state.lists.unshift(action.payload)
+        const filtered = state.lists.filter((l) => l.id !== action.payload.id)
+        state.lists = [action.payload, ...filtered]
       })
       .addCase(deleteList.fulfilled, (state, action) => {
         state.lists = state.lists.filter((l) => l.id !== action.payload)
@@ -205,12 +204,9 @@ const shoppingSlice = createSlice({
         const listId = action.payload.listId
         state.itemsByList[listId] = [...(state.itemsByList[listId] ?? []), action.payload]
         
-      
-        const parentList = state.lists.find((l) => l.id === listId)
-        if (parentList) {
-          parentList.updatedAt = action.payload.createdAt
-          state.lists = [parentList, ...state.lists.filter((l) => l.id !== listId)]
-        }
+        state.lists = state.lists
+          .map((l) => (l.id === listId ? { ...l, updatedAt: action.payload.createdAt } : l))
+          .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       })
       .addCase(updateItem.fulfilled, (state, action) => {
         const { listId, id, listUpdatedAt } = action.payload
@@ -220,11 +216,9 @@ const shoppingSlice = createSlice({
           if (index !== -1) items[index] = action.payload
         }
         
-        const parentList = state.lists.find((l) => l.id === listId)
-        if (parentList) {
-          parentList.updatedAt = listUpdatedAt
-          state.lists = [parentList, ...state.lists.filter((l) => l.id !== listId)]
-        }
+        state.lists = state.lists
+          .map((l) => (l.id === listId ? { ...l, updatedAt: listUpdatedAt } : l))
+          .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       })
       .addCase(deleteItem.fulfilled, (state, action) => {
         const { listId, id, listUpdatedAt } = action.payload
@@ -233,11 +227,9 @@ const shoppingSlice = createSlice({
           state.itemsByList[listId] = items.filter((i) => i.id !== id)
         }
         
-        const parentList = state.lists.find((l) => l.id === listId)
-        if (parentList) {
-          parentList.updatedAt = listUpdatedAt
-          state.lists = [parentList, ...state.lists.filter((l) => l.id !== listId)]
-        }
+        state.lists = state.lists
+          .map((l) => (l.id === listId ? { ...l, updatedAt: listUpdatedAt } : l))
+          .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       })
   },
 })
