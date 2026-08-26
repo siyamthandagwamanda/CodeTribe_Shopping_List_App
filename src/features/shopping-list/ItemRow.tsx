@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Trash2, Check } from 'lucide-react'
+import { Pencil, Trash2, Check, X } from 'lucide-react'
 import type { ShoppingItem } from '@/app/types'
 import { useAppDispatch } from '@/app/hooks'
 import { updateItem, deleteItem } from '@/features/shopping-list/shoppingSlice'
@@ -14,33 +14,47 @@ export default function ItemRow({
   listId: string
   item: ShoppingItem
 }) {
-
   const [editing, setEditing] = useState(false)
-  const [draftName, setDraftName] = useState(item.name)
-  const [draftQty, setDraftQty] = useState(item.quantity)
-  const [draftCategory, setDraftCategory] = useState(item.category)
-  const [draftNotes, setDraftNotes] = useState(item.notes)
-  const [draftImage, setDraftImage] = useState(item.image)
+  
+  
+  const [draftName, setDraftName] = useState(item.name || '')
+  const [draftQty, setDraftQty] = useState(item.quantity || '')
+  const [draftCategory, setDraftCategory] = useState(item.category || CATEGORIES[0])
+  const [draftNotes, setDraftNotes] = useState(item.notes || '')
+  const [draftImage, setDraftImage] = useState(item.image || '')
+  
   const dispatch = useAppDispatch()
 
   function save() {
     const trimmed = draftName.trim()
 
-    if (trimmed){
+    if (trimmed) {
       dispatch(
         updateItem({
           id: item.id,
           listId,
           patch: {
             name: trimmed,
-            quantity: draftQty.trim(),
+            quantity: (draftQty || '').trim(),
             category: draftCategory,
-            notes: draftNotes.trim(),
-            image: draftImage.trim(),
+            notes: (draftNotes || '').trim(),
+            image: (draftImage || '').trim(),
           },
         })
       )
+      setEditing(false)
+    } else {
+      dispatch(notify('Item name cannot be empty.', 'error'))
     }
+  }
+
+  
+  function cancel() {
+    setDraftName(item.name || '')
+    setDraftQty(item.quantity || '')
+    setDraftCategory(item.category || CATEGORIES[0])
+    setDraftNotes(item.notes || '')
+    setDraftImage(item.image || '')
     setEditing(false)
   }
 
@@ -50,10 +64,15 @@ export default function ItemRow({
 
   async function remove() {
     const result = await dispatch(deleteItem({ id: item.id, listId }))
-
     if (deleteItem.fulfilled.match(result)) {
       dispatch(notify(`Removed "${item.name}"`, 'info'))
     }
+  }
+
+ 
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') save()
+    if (e.key === 'Escape') cancel()
   }
 
   return (
@@ -78,6 +97,7 @@ export default function ItemRow({
             autoFocus
             value={draftName}
             onChange={(e) => setDraftName(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Item name"
             className="item-edit__name"
           />
@@ -86,6 +106,7 @@ export default function ItemRow({
             value={draftQty}
             placeholder="qty"
             onChange={(e) => setDraftQty(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="item-edit__qty"
           />
 
@@ -94,7 +115,6 @@ export default function ItemRow({
             onChange={(e) => setDraftCategory(e.target.value)}
             className="item-edit__select"
           >
-
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
@@ -104,6 +124,7 @@ export default function ItemRow({
             value={draftNotes}
             placeholder="notes"
             onChange={(e) => setDraftNotes(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="item-edit__notes"
           />
 
@@ -111,6 +132,7 @@ export default function ItemRow({
             value={draftImage}
             placeholder="image URL"
             onChange={(e) => setDraftImage(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="item-edit__image"
           />
         </div>
@@ -132,15 +154,26 @@ export default function ItemRow({
         >
           {editing ? <Check size={13} /> : <Pencil size={13} />}
         </button>
-        
-        <button
-          type="button"
-          onClick={remove}
-          aria-label="Delete item"
-          className="icon-btn icon-btn--danger"
-        >
-          <Trash2 size={13} />
-        </button>
+
+        {editing ? (
+          <button
+            type="button"
+            onClick={cancel}
+            aria-label="Cancel editing"
+            className="icon-btn"
+          >
+            <X size={13} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={remove}
+            aria-label="Delete item"
+            className="icon-btn icon-btn--danger"
+          >
+            <Trash2 size={13} />
+          </button>
+        )}
       </div>
     </li>
   )
