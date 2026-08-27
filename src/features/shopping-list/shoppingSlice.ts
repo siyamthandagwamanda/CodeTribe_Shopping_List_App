@@ -42,9 +42,9 @@ export const fetchLists = createAsyncThunk<ShoppingList[], string, { rejectValue
 
 export const createList = createAsyncThunk<
   ShoppingList,
-  { userId: string; name: string; category: string },
+  { userId: string; name: string; category: string; notes: string},
   { rejectValue: string }
->('shopping/createList', async ({ userId, name, category }, { rejectWithValue }) => {
+>('shopping/createList', async ({ userId, name, category, notes }, { rejectWithValue }) => {
   try {
     const now = new Date().toISOString()
     return await api.post<ShoppingList>('/lists', {

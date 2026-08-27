@@ -30,6 +30,7 @@ export interface ShoppingList{
     listId: string;
     name: string;
     category: string;
+    notes: string;
     createdAt: string;
     updatedAt: string;
 }

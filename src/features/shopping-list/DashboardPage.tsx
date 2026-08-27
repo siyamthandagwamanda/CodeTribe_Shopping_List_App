@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [newCategory, setNewCategory] = useState(CATEGORIES[0])
+  const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [, startTransition] = useTransition()
 
@@ -39,7 +40,7 @@ export default function DashboardPage() {
     }
   }, [user?.id, dispatch])
 
-  // Pre-compiled search query filter with optimized date sorting
+  
   const visibleLists = useMemo(() => {
     const lowerQuery = query.toLowerCase().trim()
     const filtered = lowerQuery 
@@ -54,7 +55,7 @@ export default function DashboardPage() {
         return (a.category || '').localeCompare(b.category || '')
       }
       
-      // Parse dates out of the hot sorting loop if values are unchanged
+    
       const timeA = a.updatedAt ? Date.parse(a.updatedAt) : 0
       const timeB = b.updatedAt ? Date.parse(b.updatedAt) : 0
       return timeB - timeA
@@ -62,7 +63,7 @@ export default function DashboardPage() {
   }, [lists, query, sortBy])
 
   function updateQuery(value: string) {
-    // useTransition prevents input lag when filtering heavy lists
+   
     startTransition(() => {
       const next = new URLSearchParams(searchParams)
       if (value) next.set('q', value)
@@ -79,7 +80,7 @@ export default function DashboardPage() {
   }
 
   async function submitNewList(e?: React.FormEvent) {
-    e?.preventDefault() // Prevents native form reloads
+    e?.preventDefault() 
     const trimmed = newName.trim()
 
     if (!trimmed) {
@@ -90,12 +91,13 @@ export default function DashboardPage() {
 
     try {
       setIsSubmitting(true)
-      const result = await dispatch(createList({ userId: user.id, name: trimmed, category: newCategory }))
+      const result = await dispatch(createList({ userId: user.id, name: trimmed, category: newCategory, notes: notes.trim() }))
       
       if (createList.fulfilled.match(result)) {
         dispatch(notify(`Created "${trimmed}"`, 'success'))
         setNewName('')
         setNewCategory(CATEGORIES[0])
+        setNotes('')
         setAdding(false) 
       } else {
         dispatch(notify('Could not create that list.', 'error'))
@@ -178,6 +180,14 @@ export default function DashboardPage() {
                 ))}
               </select>
 
+              <input
+                value={notes}
+                disabled={isSubmitting}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="notes (optional)"
+                className="input"
+              />
+              
               <button 
                 type="submit" 
                 disabled={isSubmitting} 

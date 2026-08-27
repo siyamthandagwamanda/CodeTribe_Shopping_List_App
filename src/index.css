@@ -599,23 +599,31 @@ a {
 }
 
 .add-trigger {
-  margin-top: 0.75rem;
-  width: 100%;
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.75rem;
-  border: 1px dashed var(--color-sage-line);
-  padding: 0.75rem;
-  font-size: 0.875rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--color-sage-line); /* Or your primary accent color */
   color: var(--color-ink-soft);
-  transition: border-color 0.15s ease, color 0.15s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
 .add-trigger:hover {
   border-color: var(--color-forest);
   color: var(--color-forest);
+}
+
+.add-trigger:active {
+  transform: scale(0.95);
 }
 
 /* ---------- List card ---------- */
