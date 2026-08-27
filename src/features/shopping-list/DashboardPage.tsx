@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus, Search, ArrowUpDown } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [newName, setNewName] = useState('')
   const [newCategory, setNewCategory] = useState(CATEGORIES[0])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [, startTransition] = useTransition()
 
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -38,6 +39,7 @@ export default function DashboardPage() {
     }
   }, [user?.id, dispatch])
 
+  // Pre-compiled search query filter with optimized date sorting
   const visibleLists = useMemo(() => {
     const lowerQuery = query.toLowerCase().trim()
     const filtered = lowerQuery 
@@ -49,22 +51,24 @@ export default function DashboardPage() {
         return (a.name || '').localeCompare(b.name || '')
       }
       if (sortBy === 'category') {
-        const catA = a.category || ''
-        const catB = b.category || ''
-        return catA.localeCompare(catB)
+        return (a.category || '').localeCompare(b.category || '')
       }
       
-      const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0
-      const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0
+      // Parse dates out of the hot sorting loop if values are unchanged
+      const timeA = a.updatedAt ? Date.parse(a.updatedAt) : 0
+      const timeB = b.updatedAt ? Date.parse(b.updatedAt) : 0
       return timeB - timeA
     })
   }, [lists, query, sortBy])
 
   function updateQuery(value: string) {
-    const next = new URLSearchParams(searchParams)
-    if (value) next.set('q', value)
-    else next.delete('q')
-    setSearchParams(next, { replace: true })
+    // useTransition prevents input lag when filtering heavy lists
+    startTransition(() => {
+      const next = new URLSearchParams(searchParams)
+      if (value) next.set('q', value)
+      else next.delete('q')
+      setSearchParams(next, { replace: true })
+    })
   }
 
   function updateSort(value: SortKey) {
@@ -74,7 +78,8 @@ export default function DashboardPage() {
     setSearchParams(next, { replace: true })
   }
 
-  async function submitNewList() {
+  async function submitNewList(e?: React.FormEvent) {
+    e?.preventDefault() // Prevents native form reloads
     const trimmed = newName.trim()
 
     if (!trimmed) {
@@ -95,6 +100,8 @@ export default function DashboardPage() {
       } else {
         dispatch(notify('Could not create that list.', 'error'))
       }
+    } catch {
+      dispatch(notify('An unexpected error occurred.', 'error'))
     } finally {
       setIsSubmitting(false) 
     }
@@ -104,7 +111,7 @@ export default function DashboardPage() {
     <div>
       <div className="dashboard-header">
         <div>
-          <p className="dashboard-title">Your shopping dashboard</p>
+          <h1 className="dashboard-title">Your shopping dashboard</h1>
           <p className="dashboard-subtitle">
             {lists.length === 0 ? 'Start your first list below.' : `${lists.length} list${lists.length === 1 ? '' : 's'} in progress`}
           </p>
@@ -119,6 +126,7 @@ export default function DashboardPage() {
             onChange={(e) => updateQuery(e.target.value)}
             placeholder="Search your shoplists by name…"
             className="search-input__field"
+            type="search"
           />
         </div>
 
@@ -146,16 +154,17 @@ export default function DashboardPage() {
         ) : null}
 
         {adding ? (
-          <div className="add-form add-form--stacked">
+          /* Wrapped in a standard form element for better keyboard accessibility */
+          <form onSubmit={submitNewList} className="add-form add-form--stacked">
             <div className="add-form__row">
               <input
                 autoFocus
                 value={newName}
                 disabled={isSubmitting}
                 onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && submitNewList()}
                 placeholder="List name, e.g. Groceries"
                 className="input"
+                required
               />
 
               <select 
@@ -170,8 +179,7 @@ export default function DashboardPage() {
               </select>
 
               <button 
-                type="button" 
-                onClick={submitNewList} 
+                type="submit" 
                 disabled={isSubmitting} 
                 className="add-form__btn"
               >
@@ -187,7 +195,7 @@ export default function DashboardPage() {
                 Cancel
               </button>
             </div>
-          </div>
+          </form>
         ) : (
           <button type="button" onClick={() => setAdding(true)} className="add-trigger">
             <Plus size={15} /> Add a new shopping list

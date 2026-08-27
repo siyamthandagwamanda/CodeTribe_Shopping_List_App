@@ -30,9 +30,10 @@ const sortListsByDate = (lists: ShoppingList[]) => {
 
 export const fetchLists = createAsyncThunk<ShoppingList[], string, { rejectValue: string }>(
   'shopping/fetchLists',
-  async (userId, { rejectWithValue }) => {
+
+  async (userId, {rejectWithValue} ) => {
     try {
-      return await api.get<ShoppingList[]>(`/list?userId=${userId}&_sort=updatedAt&_order=desc`)
+     return await api.get<ShoppingList[]>(`/lists?userId=${userId}&_sort=-updatedAt`)
     } catch (err) {
       return rejectWithValue(errMsg(err, 'Could not load your lists.'))
     }
@@ -46,7 +47,7 @@ export const createList = createAsyncThunk<
 >('shopping/createList', async ({ userId, name, category }, { rejectWithValue }) => {
   try {
     const now = new Date().toISOString()
-    return await api.post<ShoppingList>('/list', {
+    return await api.post<ShoppingList>('/lists', {
       userId,
       name,
       category,
@@ -64,7 +65,7 @@ export const renameList = createAsyncThunk<
   { rejectValue: string }
 >('shopping/renameList', async ({ id, name, category }, { rejectWithValue }) => {
   try {
-    return await api.patch<ShoppingList>(`/list/${id}`, { 
+    return await api.patch<ShoppingList>(`/lists/${id}`, { 
       name, 
       category, 
       updatedAt: new Date().toISOString() 
@@ -82,7 +83,7 @@ export const deleteList = createAsyncThunk<string, string, { rejectValue: string
       if (items.length > 0) {
         await Promise.all(items.map((item) => api.delete(`/items/${item.id}`)))
       }
-      await api.delete(`/list/${id}`)
+      await api.delete(`/lists/${id}`)
       return id
     } catch (err) {
       return rejectWithValue(errMsg(err, 'Could not delete the list.'))
@@ -139,7 +140,7 @@ export const updateItem = createAsyncThunk<
     const now = new Date().toISOString()
     const item = await api.patch<ShoppingItem>(`/items/${id}`, patch)
     await api.patch(`/list/${listId}`, { updatedAt: now })
-    return { item, listUpdatedAt: now } // Kept separate to prevent schema pollution
+    return { item, listUpdatedAt: now } 
   } catch (err) {
     return rejectWithValue(errMsg(err, 'Could not update the item.'))
   }
@@ -153,7 +154,7 @@ export const deleteItem = createAsyncThunk<
   try {
     const now = new Date().toISOString()
     await api.delete(`/items/${id}`)
-    await api.patch(`/list/${listId}`, { updatedAt: now })
+    await api.patch(`/lists/${listId}`, { updatedAt: now })
     return { id, listId, listUpdatedAt: now }
   } catch (err) {
     return rejectWithValue(errMsg(err, 'Could not delete the item.'))

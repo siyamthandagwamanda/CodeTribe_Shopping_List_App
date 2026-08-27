@@ -15,9 +15,58 @@
       "email": "mancane@gmail.com",
       "password": "$2b$10$rhsYi.apB7hTAWqt.T.KuOZmpe13uTUcLb.zvuPcS8H1YPubNHbtC",
       "id": "kBaQ2jJlRTo"
+    },
+    {
+      "name": "sabelo",
+      "surname": "gumede",
+      "cellNumber": "0123456789",
+      "email": "sabelo@gmail.com",
+      "password": "$2b$10$mUFTnm6rlpjT.sF6KKHXZu7aOz58oIm6U.NBD5QUchXillyFcuuZq",
+      "id": "-uQmYghgPkc"
+    },
+    {
+      "name": "test",
+      "surname": "one",
+      "cellNumber": "0123456789",
+      "email": "test@gmail.com",
+      "password": "$2b$10$7i.nWQf0vaxW7mOmKWWUS.s8LXw77Ry8aTF9wP3oIgy5MIe9jPGDG",
+      "id": "ph5CZgJyRR8"
     }
   ],
-  "lists": [],
+  "lists": [
+    {
+      "userId": "QecUhye9eF4",
+      "name": "qwerty",
+      "category": "General",
+      "createdAt": "2026-08-27T08:20:23.263Z",
+      "updatedAt": "2026-08-27T08:20:23.263Z",
+      "id": "HScgKWJODEg"
+    },
+    {
+      "userId": "-uQmYghgPkc",
+      "name": "sabelo",
+      "category": "General",
+      "createdAt": "2026-08-27T08:23:00.957Z",
+      "updatedAt": "2026-08-27T08:23:00.957Z",
+      "id": "3s1_Tc7agcg"
+    },
+    {
+      "userId": "-uQmYghgPkc",
+      "name": "sabelo",
+      "category": "General",
+      "createdAt": "2026-08-27T08:27:17.804Z",
+      "updatedAt": "2026-08-27T08:27:17.804Z",
+      "id": "cNeojW-F1XE"
+    },
+    {
+      "userId": "-uQmYghgPkc",
+      "name": "test",
+      "category": "General",
+      "createdAt": "2026-08-27T08:34:36.586Z",
+      "updatedAt": "2026-08-27T08:34:36.586Z",
+      "id": "3Nbv3qWMjbw"
+    }
+  ],
   "items": [],
   "$schema": "./node_modules/json-server/schema.json"
 }
